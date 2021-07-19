@@ -24,10 +24,10 @@ CGT calculation MUST work correctly before end of October 2021.
 
 ### Walk interactively through transactions
 ```
-    python -m crypto-pnl walk ../crypto/trades_all.csv
+    python -m crypto_pnl walk ../crypto/trades_all.csv
 ```
 
 ### Export as CSV with valuation per transaction in Fiat currency
 ```
-    python -m crypto-pnl export ../crypto/trades_all.csv
+    python -m crypto_pnl export ../crypto/trades_all.csv
 ``` 
