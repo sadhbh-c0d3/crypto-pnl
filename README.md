@@ -1,7 +1,6 @@
 # crypto-pnl
 Crypto Trading Realized PnL Calculation (in EUR)
 
-
 ## Rationale
 Jurisdictions require calculation of the PnL and CGT based off that as per transation basis.
 
@@ -20,3 +19,15 @@ There is lots of things to be done here:
 
 ## Current Goal
 CGT calculation MUST work correctly before end of October 2021.
+
+## Commands
+
+### Walk interactively through transactions
+```
+    python -m crypto-pnl walk ../crypto/trades_all.csv
+```
+
+### Export as CSV with valuation per transaction in Fiat currency
+```
+    python -m crypto-pnl export ../crypto/trades_all.csv
+``` 
