@@ -12,13 +12,10 @@ In order to use it correctly all other trades need to be converted into Isolated
 UNDER DEVELOPMENT
 
 There is lots of things to be done here:
- - Correct calculation of the gains in EUR
+ - Correct calculation of the gains in EUR (WIP)
  - Conversion from other CSV file formats
  - Direct API data sourcing
  - Perhaps parse blockchain to get all data required
-
-## Current Goal
-CGT calculation MUST work correctly before end of October 2021.
 
 ## Commands
 
