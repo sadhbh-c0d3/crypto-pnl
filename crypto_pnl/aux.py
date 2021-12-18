@@ -193,7 +193,12 @@ def export_trades(trades_path, market_data_paths):
 
     action_fee = 'FEE'
     
+    wallet = Wallet()
+    fees = Wallet()
+    journal = Journal(wallet, fees)
+    
     for number, trade in enumerate(trades):
+        journal.execute(trade)
         print ','.join(map(str,(
             number,
             trade.date,
@@ -219,6 +224,6 @@ def export_trades(trades_path, market_data_paths):
             action_fee,
             trade.fee.symbol,
             -trade.fee.quantity,
-            display_fiat(trade.fee.value),
+            display_fiat(-trade.fee.value),
         )))
 

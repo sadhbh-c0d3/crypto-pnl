@@ -1,34 +1,6 @@
 from .core import *
 
 
-def get_asset_rank(symbol):
-    if symbol == 'EUR':
-        return 1
-    if symbol == 'BUSD':
-         return 2
-    if symbol == 'USDT':
-         return 3
-    if symbol == 'BNB':
-         return 4
-    if symbol == 'BTC':
-         return 5
-    return 1000
-
-
-def get_fixed_exchange_rate(symbol):
-    if symbol == 'EUR':
-        return Decimal(1.0)
-    if symbol == 'BUSD':
-         return Decimal(unconvert(1.0, 1.1921))
-    if symbol == 'USDT':
-         return Decimal(unconvert(1.0, 1.192))
-    if symbol == 'BNB':
-         return Decimal(256.13)
-    if symbol == 'BTC':
-         return Decimal(28480.0)
-    raise ValueError(symbol)
-
-
 class ExchangeRates:
     """
     Track asset values based on last trade.
@@ -58,7 +30,14 @@ class ExchangeRates:
                 break
     
     def get_exchange_rate(self, symbol):
-        return get_fixed_exchange_rate(symbol)
+        if symbol == FIAT_SYMBOL:
+            return Decimal(1.0)
+        fiat_to_exch = self.last_market_data[(FIAT_SYMBOL, FIAT_EXCHANGE_SYMBOL)]
+        if symbol == FIAT_EXCHANGE_SYMBOL:
+            return Decimal(1.0) / fiat_to_exch.value
+        symbol_to_exch = self.last_market_data[(symbol, FIAT_EXCHANGE_SYMBOL)]
+        symbol_to_fiat = symbol_to_exch.value / fiat_to_exch.value
+        return symbol_to_fiat
 
     def set_asset_value(self, asset):
         unit_value = self.exchange_rates.get(asset.symbol)
@@ -95,25 +74,55 @@ class ExchangeRates:
         value = convert(trade.amount.quantity, exchange_rate)
         trade.amount.set_value(value)
         trade.executed.set_value(value)
-        fee = (trade.fee.quantity 
-                    if trade.fee.symbol == trade.amount.symbol
-                    else trade.price * trade.fee.quantity)
-        trade.fee.set_value(convert(fee, exchange_rate))
         trade.exchange_rate = exchange_rate
         trade.exchange_symbol = trade.amount.symbol
+        if trade.fee.symbol == trade.amount.symbol:
+            trade.fee.set_value(
+                convert(trade.fee.quantity, exchange_rate)
+            )
+        elif trade.fee.symbol == trade.executed.symbol:
+            trade.fee.set_value(
+                convert(
+                    convert(trade.fee.quantity, trade.price), 
+                    exchange_rate))
+        else:
+            fee_exchange_rate = self.get_exchange_rate(trade.fee.symbol)
+            trade.fee.set_value(convert(trade.fee.quantity, fee_exchange_rate))
     
     def set_trade_assets_value_from_traded(self, trade):
         exchange_rate = self.get_exchange_rate(trade.executed.symbol)
         value = convert(trade.executed.quantity, exchange_rate)
         trade.executed.set_value(value)
         trade.amount.set_value(value)
-        fee = (trade.fee.quantity 
-                    if trade.fee.symbol == trade.executed.symbol
-                    else trade.fee.quantity / trade.price)
-        trade.fee.set_value(convert(fee, exchange_rate))
         trade.exchange_rate = exchange_rate
         trade.exchange_symbol = trade.executed.symbol
+        if trade.fee.symbol == trade.executed.symbol:
+            trade.fee.set_value(
+                convert(trade.fee.quantity, exchange_rate)
+            )
+        elif trade.fee.symbol == trade.amount.symbol:
+            trade.fee.set_value(
+                convert(
+                    unconvert(trade.fee.quantity, trade.price), 
+                    exchange_rate))
+        else:
+            fee_exchange_rate = self.get_exchange_rate(trade.fee.symbol)
+            trade.fee.set_value(convert(trade.fee.quantity, fee_exchange_rate))
     
 
 exchange_rates = ExchangeRates()
+
+
+def get_asset_rank(symbol):
+    if symbol == 'EUR':
+        return 1
+    if symbol == 'BUSD':
+         return 2
+    if symbol == 'USDT':
+         return 3
+    if symbol == 'BNB':
+         return 4
+    if symbol == 'BTC':
+         return 5
+    return 1000
 

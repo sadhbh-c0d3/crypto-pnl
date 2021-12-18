@@ -2,6 +2,18 @@ from .core import *
 from .asset import *
 
 
+# And example of trade data 
+#
+# - exported trades from Binance Isolated Margin account
+#
+# NOTE Trades exported from Binance Spot account need to be manually converted into this format.
+# Additionally any other exported conversions need to be converted into this format.
+#
+# Date(UTC),Pair,Side,Price,Executed,Amount,Fee
+# 2021-06-05 16:36:56,DOGEEUR,BUY,0.31031,500DOGE,155.15500000EUR,0.5DOGE
+# 2021-06-07 16:02:28,DOGEBTC,SELL,0.00001006,200.0000000000DOGE,0.00201200BTC,0.0000020100BTC
+
+
 class Trade:
     def __init__(self, 
             date, pair, side, price, executed, amount, fee
