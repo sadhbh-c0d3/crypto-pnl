@@ -32,13 +32,13 @@ class Journal:
             Share Matching Rules:
                 https://www.whitefieldtax.co.uk/cgt-share-matching-rules-worked-example/
         """
-        exchange_rates.set_last_trade(trade)
+        exchange_rates.will_execute(trade)
         
-        self.wallet.add(trade.executed.symbol, trade.side, trade.executed)
-        self.wallet.add(trade.amount.symbol, -trade.side, trade.amount)
-        
-        self.wallet.add(trade.fee.symbol, -1, trade.fee)
-        self.fees.add(trade.fee.symbol, 1, trade.fee)
+        self.wallet.add(trade.executed.symbol, trade.executed, trade.side)
+        self.wallet.sub(trade.amount.symbol, trade.amount, trade.side)
+
+        self.wallet.sub(trade.fee.symbol, trade.fee)
+        self.fees.add(trade.fee.symbol, trade.fee)
         
         position_main = self.main.get(trade.pair, trade.amount.symbol)
         position_traded = self.traded.get(trade.pair, trade.executed.symbol)

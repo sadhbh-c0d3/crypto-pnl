@@ -47,7 +47,7 @@ class Asset:
     @property
     def value_str(self):
         if self.has_value:
-            return '{:10}'.format(display(self.value))
+            return '{:10}'.format(display_fiat(self.value))
         else:
             return '     ???'
 

@@ -5,13 +5,16 @@ class Wallet:
     def __init__(self):
         self.pockets = {}
     
-    def add(self, pocket, multiplier, amount):
+    def add(self, pocket, amount, multiplier=1):
         position = amount * multiplier
         if pocket in self.pockets:
             self.pockets[pocket] += position
         else:
             self.pockets[pocket] = position
-    
+
+    def sub(self, pocket, amount, multiplier=1):
+        return self.add(pocket, amount, -multiplier)
+
     def get_subset(self, pockets):
         subset = Wallet()
         for pocket in pockets:

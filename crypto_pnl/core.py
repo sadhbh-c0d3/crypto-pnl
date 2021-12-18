@@ -2,21 +2,34 @@ import csv
 import re
 
 from decimal import Decimal
+from datetime import datetime
 
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 INCH_RE = re.compile('(?P<quantity>[0-9.]+)1INCH')
 MONETARY_RE = re.compile('(?P<quantity>[0-9.]+)(?P<symbol>[A-Z]*)')
 
 ZERO_LEVEL = Decimal('0.0000000001')
+
 QUANTIZER_1 = Decimal('0.0000001')
 QUANTIZER_2 = Decimal('0.001')
-LINE_LENGTH = 122
+
+FIAT_QUANTIZER = Decimal('0.01')
 FIAT_SYMBOL = 'EUR'
+
 INCH_SYMBOL = '1INCH'
+
 SIDE_BUY = 'BUY'
 SIDE_SELL = 'SELL'
+
 SIGN_BUY = 1
 SIGN_SELL = -1
+
+LINE_LENGTH = 122
+
+
+def get_datetime(date):
+    return datetime.strptime(date, DATE_FORMAT)
 
 
 def get_asset_rank(symbol):
@@ -33,8 +46,7 @@ def get_asset_rank(symbol):
     return 1000
 
 
-def get_exchange_rate(date, symbol):
-    # TODO: Feed from market data
+def get_fixed_exchange_rate(symbol):
     if symbol == 'EUR':
         return Decimal(1.0)
     if symbol == 'BUSD':
@@ -77,6 +89,10 @@ def display(quantity):
     return quantity.quantize(QUANTIZER_2)
 
 
+def display_fiat(quantity):
+    return quantity.quantize(FIAT_QUANTIZER)
+
+
 def load_csv(path):
     with open(path) as fp:
         return csv.reader(fp.readlines())
@@ -105,4 +121,23 @@ def line_trade_summary():
 
 def line_summary():
     return fit_line('','=')
+
+
+def combine_data_streams(data_streams):
+    def next_or_none(it):
+        try:
+            return next(it)
+        except StopIteration:
+            return None
+    iters = map(iter, data_streams)
+    current = map(next_or_none, iters)
+    while not all(x is None for x in current):
+        next_i = None
+        for (i, it) in enumerate(iters):
+            if (current[i] is None):
+                continue
+            if (next_i is None or current[i].date < current[next_i].date):
+                next_i = i
+        yield (next_i, current[next_i])
+        current[next_i] = next_or_none(iters[next_i])
 

@@ -1,10 +1,12 @@
 from .core import *
 from .trade import load_trades
+from .market_data import load_market_data
 from .summary import Summary
 from .wallet import Wallet
 from .journal import Journal
 from .position import Positions
 from .tracker import Trackers
+from .exchange_rates import exchange_rates
 
 
 def print_trade_summary(index, trade, wallet, journal, fees):
@@ -114,8 +116,11 @@ def print_final_summary(wallet, journal, fees):
     print
 
 
-def walk_trades(path):
-    trades = load_trades(path)
+def walk_trades(trades_path, market_data_paths):
+    exchange_rates.set_market_data_streams(
+        map(load_market_data, market_data_paths))
+
+    trades = load_trades(trades_path)
 
     wallet = Wallet()
     fees = Wallet()
@@ -165,41 +170,55 @@ def walk_trades(path):
             break
 
 
-def export_trades(path):
-    trades = load_trades(path)
+def export_trades(trades_path, market_data_paths):
+    exchange_rates.set_market_data_streams(
+        map(load_market_data, market_data_paths))
+
+    trades = load_trades(trades_path)
     print ','.join((
+            'transaction',
             'date',
-            'pair',
-            'side',
-            'executed.symbol',
-            'executed.quantity',
-            'executed.value',
-            'price',
-            'amount.symbol',
-            'amount.quantity',
-            'amount.value',
-            'fee.symbol',
-            'fee.quantity',
-            'fee.value',
-            'exchange_symbol',
-            'exchange_rate'
+            'market',
+            'action',
+            'asset',
+            'amount',
+            'cost ({})'.format(FIAT_SYMBOL),
     ))
-    for trade in trades:
+    
+    def action_main(side):
+        return 'DISPOSE' if side != SIGN_SELL else 'ACQUIRE'
+    
+    def action_executed(side):
+        return 'DISPOSE' if side == SIGN_SELL else 'ACQUIRE'
+
+    action_fee = 'FEE'
+    
+    for number, trade in enumerate(trades):
         print ','.join(map(str,(
+            number,
             trade.date,
             trade.pair,
-            trade.side,
+            action_executed(trade.side),
             trade.executed.symbol,
-            trade.executed.quantity,
-            display(trade.executed.value),
-            trade.price,
+            trade.executed.quantity * trade.side,
+            display_fiat(trade.executed.value * trade.side),
+        )))
+        print ','.join(map(str,(
+            number,
+            trade.date,
+            trade.pair,
+            action_main(trade.side),
             trade.amount.symbol,
-            trade.amount.quantity,
-            display(trade.amount.value),
+            trade.amount.quantity * -trade.side,
+            display_fiat(trade.amount.value * -trade.side),
+        )))
+        print ','.join(map(str,(
+            number,
+            trade.date,
+            trade.pair,
+            action_fee,
             trade.fee.symbol,
-            trade.fee.quantity,
-            display(trade.fee.value),
-            trade.exchange_symbol,
-            display(trade.exchange_rate)
+            -trade.fee.quantity,
+            display_fiat(trade.fee.value),
         )))
 

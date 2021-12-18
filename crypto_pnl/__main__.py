@@ -14,6 +14,8 @@ Lots of things!
 """
 
 import sys
+import os
+import glob
 
 from .aux import (
     walk_trades, 
@@ -21,12 +23,19 @@ from .aux import (
 )
 
 
+def get_paths(path):
+    trades_path, = glob.glob(os.path.join(path, 'trades.csv'))
+    market_data_path = glob.glob(os.path.join(path, 'market_data/*.csv'))
+    return trades_path, market_data_path
+
+
 def main():
     cmd, path = sys.argv[1:]
+    paths = get_paths(path)
     if cmd == 'walk':
-        walk_trades(path)
+        walk_trades(*paths)
     elif cmd == 'export':
-        export_trades(path)
+        export_trades(*paths)
 
 
 if __name__ == '__main__':
