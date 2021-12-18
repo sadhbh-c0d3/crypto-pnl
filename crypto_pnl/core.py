@@ -32,34 +32,6 @@ def get_datetime(date):
     return datetime.strptime(date, DATE_FORMAT)
 
 
-def get_asset_rank(symbol):
-    if symbol == 'EUR':
-        return 1
-    if symbol == 'BUSD':
-         return 2
-    if symbol == 'USDT':
-         return 3
-    if symbol == 'BNB':
-         return 4
-    if symbol == 'BTC':
-         return 5
-    return 1000
-
-
-def get_fixed_exchange_rate(symbol):
-    if symbol == 'EUR':
-        return Decimal(1.0)
-    if symbol == 'BUSD':
-         return Decimal(unconvert(1.0, 1.1921))
-    if symbol == 'USDT':
-         return Decimal(unconvert(1.0, 1.192))
-    if symbol == 'BNB':
-         return Decimal(256.13)
-    if symbol == 'BTC':
-         return Decimal(28480.0)
-    raise ValueError(symbol)
-
-
 def parse_side(side):
     return Decimal(
         SIGN_SELL 

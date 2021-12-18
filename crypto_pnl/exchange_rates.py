@@ -1,6 +1,34 @@
 from .core import *
 
 
+def get_asset_rank(symbol):
+    if symbol == 'EUR':
+        return 1
+    if symbol == 'BUSD':
+         return 2
+    if symbol == 'USDT':
+         return 3
+    if symbol == 'BNB':
+         return 4
+    if symbol == 'BTC':
+         return 5
+    return 1000
+
+
+def get_fixed_exchange_rate(symbol):
+    if symbol == 'EUR':
+        return Decimal(1.0)
+    if symbol == 'BUSD':
+         return Decimal(unconvert(1.0, 1.1921))
+    if symbol == 'USDT':
+         return Decimal(unconvert(1.0, 1.192))
+    if symbol == 'BNB':
+         return Decimal(256.13)
+    if symbol == 'BTC':
+         return Decimal(28480.0)
+    raise ValueError(symbol)
+
+
 class ExchangeRates:
     """
     Track asset values based on last trade.
@@ -17,14 +45,17 @@ class ExchangeRates:
     
     def play_market_data_until(self, date):
         while True:
-            which_stream, self.market_data_next = next(self.market_data_iter)
-            if date < self.market_data_next.date:
+            try:
+                which_stream, self.market_data_next = next(self.market_data_iter)
+                if date < self.market_data_next.date:
+                    break
+                key = (
+                    self.market_data_next.symbol_traded,
+                    self.market_data_next.symbol_main)
+                self.last_market_data[key] = self.market_data_next
+                self.market_data_current = self.market_data_next
+            except StopIteration:
                 break
-            key = (
-                self.market_data_next.symbol_traded,
-                self.market_data_next.symbol_main)
-            self.last_market_data[key] = self.market_data_next
-            self.market_data_current = self.market_data_next
     
     def get_exchange_rate(self, symbol):
         return get_fixed_exchange_rate(symbol)

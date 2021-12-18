@@ -1,4 +1,6 @@
 from .core import *
+from .asset import *
+
 
 class MarketData:
     def __init__(self,
@@ -7,10 +9,10 @@ class MarketData:
         self.unix = unix
         self.date = get_datetime(date)
         (self.symbol_traded, self.symbol_main) = symbol.split('/')
-        self.open_price = open_price
-        self.high_price = high_price
-        self.low_price = low_price
-        self.close_price = close_price
+        self.open_price = parse_price(open_price)
+        self.high_price = parse_price(high_price)
+        self.low_price = parse_price(low_price)
+        self.close_price = parse_price(close_price)
     
     def info(self):
         return '\n'.join([
