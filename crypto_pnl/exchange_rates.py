@@ -42,7 +42,7 @@ class ExchangeRates:
     def set_asset_value(self, asset):
         unit_value = self.exchange_rates.get(asset.symbol)
         if unit_value:
-            asset.set_value(convert(asset.quantity, unit_value))
+            asset.set_value(convert(asset.quantity, unit_value), CURRENT_VALUE)
     
     def will_execute(self, trade):
         self.set_trade_assets_value(trade)
@@ -72,42 +72,46 @@ class ExchangeRates:
     def set_trade_assets_value_from_main(self, trade):
         exchange_rate = self.get_exchange_rate(trade.amount.symbol)
         value = convert(trade.amount.quantity, exchange_rate)
-        trade.amount.set_value(value)
-        trade.executed.set_value(value)
+        trade.amount.set_value(value, get_main_value_type(trade.side))
+        trade.executed.set_value(value, get_traded_value_type(trade.side))
         trade.exchange_rate = exchange_rate
         trade.exchange_symbol = trade.amount.symbol
         if trade.fee.symbol == trade.amount.symbol:
             trade.fee.set_value(
-                convert(trade.fee.quantity, exchange_rate)
+                convert(trade.fee.quantity, exchange_rate),
+                FEE_VALUE
             )
         elif trade.fee.symbol == trade.executed.symbol:
             trade.fee.set_value(
                 convert(
                     convert(trade.fee.quantity, trade.price), 
-                    exchange_rate))
+                    exchange_rate),
+                FEE_VALUE)
         else:
             fee_exchange_rate = self.get_exchange_rate(trade.fee.symbol)
-            trade.fee.set_value(convert(trade.fee.quantity, fee_exchange_rate))
+            trade.fee.set_value(convert(trade.fee.quantity, fee_exchange_rate), FEE_VALUE)
     
     def set_trade_assets_value_from_traded(self, trade):
         exchange_rate = self.get_exchange_rate(trade.executed.symbol)
         value = convert(trade.executed.quantity, exchange_rate)
-        trade.executed.set_value(value)
-        trade.amount.set_value(value)
+        trade.executed.set_value(value, get_traded_value_type(trade.side))
+        trade.amount.set_value(value, get_main_value_type(trade.side))
         trade.exchange_rate = exchange_rate
         trade.exchange_symbol = trade.executed.symbol
         if trade.fee.symbol == trade.executed.symbol:
             trade.fee.set_value(
-                convert(trade.fee.quantity, exchange_rate)
+                convert(trade.fee.quantity, exchange_rate), 
+                FEE_VALUE
             )
         elif trade.fee.symbol == trade.amount.symbol:
             trade.fee.set_value(
                 convert(
                     unconvert(trade.fee.quantity, trade.price), 
-                    exchange_rate))
+                    exchange_rate),
+                FEE_VALUE)
         else:
             fee_exchange_rate = self.get_exchange_rate(trade.fee.symbol)
-            trade.fee.set_value(convert(trade.fee.quantity, fee_exchange_rate))
+            trade.fee.set_value(convert(trade.fee.quantity, fee_exchange_rate), FEE_VALUE)
     
 
 exchange_rates = ExchangeRates()
