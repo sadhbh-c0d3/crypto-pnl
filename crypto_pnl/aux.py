@@ -13,12 +13,6 @@ def print_trade_summary(index, trade, wallet, journal, fees):
     print '\n{}'.format(line_title('[ Trade #{:5}]'.format(index)))
     print trade
 
-    print '\n{}'.format(line_title('[ Transaction Gains ]'))
-    print Trackers.headers_str()
-    print journal.trackers.get_subset([
-       trade.executed.symbol, 
-       trade.amount.symbol]).last_transaction_str
-
     print '\n{}'.format(line_title('[ Position ]'))
     print '{} (ACCOUNT)'.format(Positions.headers_str())
 
@@ -40,6 +34,12 @@ def print_trade_summary(index, trade, wallet, journal, fees):
     summary_journal_all.add_fees(fees)
     print summary_journal_all.total
     
+    print '\n{}'.format(line_title('[ Transaction Gains ]'))
+    print Trackers.headers_str()
+    print journal.trackers.get_subset([
+       trade.executed.symbol,
+       trade.amount.symbol]).last_transaction_str
+
     print
     
 
