@@ -1,4 +1,5 @@
 from .core import *
+from .asset import Asset
 from .position import (
     Position,
     Positions
@@ -7,38 +8,37 @@ from .position import (
 class Summary:
     def __init__(self):
         self.total = Positions()
-        self.total_value = Position(FIAT_SYMBOL)
 
     def calculate(self, accounts):
         for name, position in accounts.positions.items():
             result = self.total.get(position.symbol, position.symbol)
-            result.total_acquire += position.total_acquire
-            result.total_dispose += position.total_dispose
+            result.total_acquire = Asset(
+                result.total_acquire.quantity + position.total_acquire.quantity,
+                position.symbol)
+            result.total_dispose = Asset(
+                result.total_dispose.quantity + position.total_dispose.quantity,
+                position.symbol)
     
     def add_fees(self, fees):
         for symbol, fee in fees.pockets.items():
             result = self.total.get(symbol, symbol)
-            result.total_dispose += fee
+            result.total_dispose = Asset(
+                result.total_dispose.quantity + fee.quantity, symbol)
     
     def add_ballances(self, ballances):
         for symbol, ballance in ballances.pockets.items():
             result = self.total.get(symbol, symbol)
             if ballance.quantity < 0:
-                result.total_dispose -= ballance
+                result.total_dispose = Asset(
+                    result.total_dispose.quantity - ballance.quantity, 
+                    symbol)
             else:
-                result.total_acquire += ballance
-
-    def calculate_total_value(self):
-        for k, v in self.total.positions.items():
-            self.total_value.total_acquire.quantity += v.total_acquire.value
-            self.total_value.total_dispose.quantity += v.total_dispose.value
-        self.total_value.total_acquire.set_value(self.total_value.total_acquire.quantity)
-        self.total_value.total_dispose.set_value(self.total_value.total_dispose.quantity)
+                result.total_acquire = Asset(
+                    result.total_acquire.quantity + ballance.quantity, 
+                    symbol)
 
     def __str__(self):
-        total_value = Positions()
-        total_value.positions['SUMMARY'] = self.total_value
-        return '{}\n{}\n{}\n{}'.format(
+        return '{}\n{}'.format(
                 Positions.headers_str(),
-                self.total, line_summary(), total_value)
+                self.total)
 

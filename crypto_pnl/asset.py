@@ -6,55 +6,33 @@ class Asset:
         self.quantity = Decimal(quantity)
         self.symbol = symbol
 
-    def set_value(self, val):
-        self.value = Decimal(val)
+    def set_value(self, value_data, value_type):
+        self.value_data = Decimal(value_data)
+        self.value_type = value_type
 
     @property
     def has_value(self):
-        return hasattr(self, 'value')
-    
-    def __mul__(self, scalar):
-        result = Asset(self.quantity * scalar, self.symbol)
-        if self.has_value:
-            result.value = self.value * scalar
-        return result
-    
-    def __neg__(self):
-        return self.__mul__(Decimal(-1))
-    
-    def __add__(self, other):
-        result = Asset(self.quantity + other.quantity, self.symbol)
-        if self.has_value and other.has_value:
-            result.value = self.value + other.value
-        return result
-    
-    def __sub__(self, other):
-        result = Asset(self.quantity - other.quantity, self.symbol)
-        if self.has_value and other.has_value:
-            result.value = self.value - other.value
-        return result
+        return hasattr(self, 'value_data')
     
     def split(self, quantity):
         total_quantity = self.quantity
         self.quantity -= quantity
         other = Asset(quantity, self.symbol)
         if self.has_value:
-            unit_value = self.value / total_quantity
-            self.value = convert(self.quantity, unit_value)
-            other.set_value(convert(quantity, unit_value))
+            unit_value = self.value_data / total_quantity
+            self.value_data = convert(self.quantity, unit_value)
+            other.set_value(convert(quantity, unit_value), self.value_type)
         return other
     
     @property
     def value_str(self):
         if self.has_value:
-            return '{:10}'.format(display_fiat(self.value))
+            return '{:10}'.format(display_fiat(self.value_data))
         else:
-            return '     ???'
+            return '{:10}'.format(0)
 
     def __str__(self):
-        return '{:16} {:5} ({:10} {:3})'.format(
-            display(self.quantity), self.symbol, 
-            self.value_str, FIAT_SYMBOL)
+        return '{:16} {:5}'.format( display(self.quantity), self.symbol)
         
 
 def parse_price(price):

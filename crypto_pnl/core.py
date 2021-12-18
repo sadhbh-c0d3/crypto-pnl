@@ -26,7 +26,13 @@ SIDE_SELL = 'SELL'
 SIGN_BUY = 1
 SIGN_SELL = -1
 
-LINE_LENGTH = 122
+CURRENT_VALUE = 'value'
+ACQUIRE_VALUE = 'cost'
+DISPOSE_VALUE = 'earn'
+FEE_VALUE = 'fee'
+GAIN_VALUE = 'gain'
+
+LINE_LENGTH = 92
 
 
 def get_datetime(date):
@@ -42,6 +48,20 @@ def parse_side(side):
 
 def get_side(quantity):
     return SIDE_SELL if quantity < 0 else SIDE_BUY
+
+
+def get_main_value_type(sign):
+    return (
+        DISPOSE_VALUE 
+            if sign == SIGN_BUY else 
+        ACQUIRE_VALUE)
+
+
+def get_traded_value_type(sign):
+    return (
+        ACQUIRE_VALUE 
+            if sign == SIGN_BUY else 
+        DISPOSE_VALUE)
 
 
 def convert(quantity, rate):

@@ -49,6 +49,9 @@ class Journal:
         tracker_main = self.trackers.get(trade.amount.symbol, trade.amount.symbol)
         tracker_traded = self.trackers.get(trade.executed.symbol, trade.executed.symbol)
 
+        tracker_main.begin_transaction()
+        tracker_traded.begin_transaction()
+
         if trade.side == SIGN_SELL:
             position_traded.dispose(trade.executed)
             position_all_traded.dispose(trade.executed)
