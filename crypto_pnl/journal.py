@@ -76,7 +76,6 @@ class Journal:
             position_all_main.dispose(trade.amount)
             tracker_main.dispose(trade.amount)
 
-
         tracker_main.end_transaction()
         tracker_traded.end_transaction()
         if not fee_in_pair:

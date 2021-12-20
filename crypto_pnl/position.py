@@ -29,7 +29,7 @@ class Position:
             '(DISPOSED)'.rjust(16), 
             '(FEE)'.rjust(16), 
             '(POSITION)'.rjust(16),
-            '(VALUE)'.rjust(10)
+            '({})'.format(FIAT_SYMBOL).rjust(10)
         )
 
     def __str__(self):

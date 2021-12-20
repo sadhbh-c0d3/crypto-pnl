@@ -58,6 +58,18 @@ class Tracker:
             print('  UNPAID FEE: {}'.format(remaining))
             self.unpaid_fees.append(remaining)
 
+    def list_stacks(self):
+        positions = []
+        for asset in self.acquire_stack:
+            position = Position(asset.symbol)
+            position.total_acquire = asset.quantity
+            positions.append(position)
+        for asset in self.dispose_stack:
+            position = Position(asset.symbol)
+            position.total_dispose = asset.quantity
+            positions.append(position)
+        return positions
+
     def balance(self):
         position = Position(self.symbol)
         position.total_acquire = sum(asset.quantity for asset in self.acquire_stack)
@@ -68,6 +80,9 @@ class Tracker:
         position = Position(self.symbol)
         position.total_dispose = sum(asset.quantity for asset in self.unpaid_fees)
         return position
+
+    def has_unpaid_fees(self):
+        return not not self.unpaid_fees
 
     def match(self, asset, stack, sign):
         matched = []
@@ -184,6 +199,12 @@ class Trackers:
             subset.trackers[pair] = self.trackers[pair]
         return subset
 
+    def list_stacks(self):
+        stacks = []
+        for (pair, tracker) in self.trackers.items():
+            stacks += tracker.list_stacks()
+        return stacks
+
     def balance(self):
         balance = Positions()
         for (pair, tracker) in self.trackers.items():
@@ -193,8 +214,13 @@ class Trackers:
     def unpaid_fees_balance(self):
         balance = Positions()
         for (pair, tracker) in self.trackers.items():
-            balance.positions[pair] = tracker.unpaid_fees_balance()
+            unpaid_fees = tracker.unpaid_fees_balance()
+            balance.positions[pair] = unpaid_fees
         return balance
+
+    def has_unpaid_fees(self):
+        return any(tracker.has_unpaid_fees()
+            for tracker in self.trackers.values())
 
     def summary(self):
         summary = Trackers()
@@ -218,4 +244,10 @@ class Trackers:
                 '{:10} |{}'.format(k, v.format_match(m))
                 for k,v in sorted_items(self.trackers)
                 for m in v.matched[v.last_transaction_index:])
+
+    @property
+    def list_stacks_str(self):
+        return '\n'.join(
+                '{:10} |{}'.format(s.symbol, s)
+                for s in self.list_stacks())
 

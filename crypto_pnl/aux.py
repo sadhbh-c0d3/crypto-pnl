@@ -13,14 +13,14 @@ def print_trade_summary(index, trade, wallet, journal):
     print '\n{}'.format(line_title('[ Trade #{:5}]'.format(index)))
     print trade
 
-    print '\n{}'.format(line_title('[ Balance ]'))
+    print '\n{}'.format(line_title('[ Total Account Balance ]'))
     print '{} (ACCOUNT)'.format(Positions.headers_str())
 
     summary_journal_all = Summary()
     summary_journal_all.calculate(journal.all)
-    print '{}   Balance'.format(summary_journal_all.total)
+    print summary_journal_all.total
 
-    print '\n{}'.format(line_title('[ Main/Traded ]'))
+    print '\n{}'.format(line_title('[ Total Main/Traded Account Balance ]'))
     summary_journal_main = Summary()
     summary_journal_main.calculate(journal.main.get_subset([trade.pair]))
     print '{}   {}:Main'.format(summary_journal_main.total, trade.pair)
@@ -29,17 +29,21 @@ def print_trade_summary(index, trade, wallet, journal):
     summary_journal_traded.calculate(journal.traded.get_subset([trade.pair]))
     print '{}   {}:Traded'.format(summary_journal_traded.total, trade.pair)
 
-    print '\n{}'.format(line_title('[ Trackers ]'))
+    print '\n{}'.format(line_title('[ Individual Assets (fees deducted) ]'))
     trackers = journal.trackers.get_subset([
        trade.executed.symbol,
        trade.amount.symbol,
        trade.fee.symbol
     ])
-    print Positions.headers_str()
-    print '{}   Trackers'.format(trackers.balance())
-    print '{}   Unpaid Fees'.format(trackers.unpaid_fees_balance())
+    print trackers.list_stacks_str
 
-    print '\n{}'.format(line_title('[ Gains ]'))
+    print '\n{}'.format(line_title('[ Asset Balance (post-trade) ]'))
+    print trackers.balance()
+    if trackers.has_unpaid_fees():
+        print '\n{}'.format(line_title('[ Unpaid Fees (post-trade) ]'))
+        print trackers.unpaid_fees_balance()
+
+    print '\n{}'.format(line_title('[ Transaction Gains (matched individual assets) ]'))
     print Trackers.headers_str()
     print trackers.last_transaction_str
 
@@ -47,39 +51,43 @@ def print_trade_summary(index, trade, wallet, journal):
     
 
 def print_final_summary(wallet, journal):
-    print '\n{}'.format(line_title('[ Main Account ]'))
+    print '\n{}'.format(line_title('[ Total Main Account Balance ]'))
     summary_main = Summary()
     summary_main.calculate(journal.main)
     print summary_main
 
-    print '\n{}'.format(line_title('[ Traded Account ]'))
+    print '\n{}'.format(line_title('[ Total Traded Account Balance ]'))
     summary_traded = Summary()
     summary_traded.calculate(journal.traded)
     print summary_traded
 
-    print '\n{}'.format(line_title('[ Account Balance ]'))
+    print '\n{}'.format(line_title('[ Total Account Balance ]'))
     summary_wallet = Summary()
     summary_wallet.calculate(journal.all)
     print summary_wallet
 
-    print '\n{}'.format(line_title('[ Total Gains ]'))
-    print Trackers.headers_str()
-    print journal.trackers.summary()
+    print '\n{}'.format(line_title('[ All Individual Assets (fees deducted) ]'))
+    print Positions.headers_str()
+    print journal.trackers.list_stacks_str
 
-    print '\n{}'.format(line_title('[ Trackers Balance ]'))
+    print '\n{}'.format(line_title('[ All Asset Balance ]'))
     print Positions.headers_str()
     trackers_balance = journal.trackers.balance()
     trackers_unpaid_fees = journal.trackers.unpaid_fees_balance()
     print trackers_balance
-    print '\n{}'.format(line_title('[ Trackers Unpaid Fees ]'))
+    print '\n{}'.format(line_title('[ All Unpaid Fees ]'))
     print trackers_unpaid_fees
     summary_trackers = Summary()
     summary_trackers.calculate(trackers_balance)
     summary_trackers.calculate(trackers_unpaid_fees)
-    print '\n{}'.format(line_title('[ Trackers Fees Paid ]'))
+    print '\n{}'.format(line_title('[ Remaining Asset Balance (after fees are paid) ]'))
     print summary_trackers
 
-    print '\n{}'.format(line_title('[ Wallet ]'))
+    print '\n{}'.format(line_title('[ Total Transaction Gains (summary of all individual matched assets) ]'))
+    print Trackers.headers_str()
+    print journal.trackers.summary()
+
+    print '\n{}'.format(line_title('[ Wallet (remaining total amounts of assets) ]'))
     print Wallet.headers_str()
     print wallet
 
