@@ -14,7 +14,7 @@ ZERO_LEVEL = Decimal('0.0000000001')
 QUANTIZER_1 = Decimal('0.0000001')
 QUANTIZER_2 = Decimal('0.001')
 
-FIAT_QUANTIZER = Decimal('0.01')
+FIAT_QUANTIZER = Decimal('0.001')
 FIAT_SYMBOL = 'EUR'
 FIAT_EXCHANGE_SYMBOL = 'USDT'
 
@@ -32,7 +32,7 @@ DISPOSE_VALUE = 'earn'
 FEE_VALUE = 'fee'
 GAIN_VALUE = 'gain'
 
-LINE_LENGTH = 92
+LINE_LENGTH = 110
 
 
 def get_datetime(date):

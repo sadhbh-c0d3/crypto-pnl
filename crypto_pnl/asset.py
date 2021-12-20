@@ -33,7 +33,13 @@ class Asset:
 
     def __str__(self):
         return '{:16} {:5}'.format( display(self.quantity), self.symbol)
-        
+
+
+def zero_asset(symbol, value_type):
+    asset = Asset(0, symbol)
+    asset.set_value(0, value_type)
+    return asset
+
 
 def parse_price(price):
     price = price.replace(',','')

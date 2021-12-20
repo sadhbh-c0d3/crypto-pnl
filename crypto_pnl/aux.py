@@ -9,7 +9,7 @@ from .tracker import Trackers
 from .exchange_rates import exchange_rates
 
 
-def print_trade_summary(index, trade, wallet, journal, fees):
+def print_trade_summary(index, trade, wallet, journal):
     print '\n{}'.format(line_title('[ Trade #{:5}]'.format(index)))
     print trade
 
@@ -24,26 +24,22 @@ def print_trade_summary(index, trade, wallet, journal, fees):
     summary_journal_traded.calculate(journal.traded.get_subset([trade.pair]))
     print '{}   {}:Traded'.format(summary_journal_traded.total, trade.pair)
 
-    summary_fees = Summary()
-    summary_fees.add_fees(fees.get_subset([trade.fee.symbol]))
-    print '{}   {}:Fee'.format(summary_fees.total, trade.pair)
-    
-    print '\n{}'.format(line_title('[ Balance ]'))
+    print '\n{}'.format(line_trade_summary())
     summary_journal_all = Summary()
     summary_journal_all.calculate(journal.all)
-    summary_journal_all.add_fees(fees)
-    print summary_journal_all.total
-    
+    print '{}   Balance'.format(summary_journal_all.total)
+
     print '\n{}'.format(line_title('[ Transaction Gains ]'))
     print Trackers.headers_str()
     print journal.trackers.get_subset([
        trade.executed.symbol,
-       trade.amount.symbol]).last_transaction_str
+       trade.amount.symbol,
+       trade.fee.symbol ]).last_transaction_str
 
     print
     
 
-def print_final_summary(wallet, journal, fees):
+def print_final_summary(wallet, journal):
     print '\n{}'.format(line_title('[ Main ]'))
     summary_main = Summary()
     summary_main.calculate(journal.main)
@@ -54,21 +50,9 @@ def print_final_summary(wallet, journal, fees):
     summary_traded.calculate(journal.traded)
     print summary_traded
     
-    print '\n{}'.format(line_title('[ Position ]'))
-    summary = Summary()
-    summary.calculate(summary_main.total)
-    summary.calculate(summary_traded.total)
-    print summary
-    
-    print '\n{}'.format(line_title('[ Fees ]'))
-    summary_fees = Summary()
-    summary_fees.add_fees(fees)
-    print summary_fees
-    
     print '\n{}'.format(line_title('[ Balance ]'))
     summary_wallet = Summary()
     summary_wallet.calculate(journal.all)
-    summary_wallet.add_fees(fees)
     print summary_wallet
 
     print '\n{}'.format(line_title('[ Gains ]'))
@@ -89,8 +73,7 @@ def walk_trades(trades_path, market_data_paths):
     trades = load_trades(trades_path)
 
     wallet = Wallet()
-    fees = Wallet()
-    journal = Journal(wallet, fees)
+    journal = Journal(wallet)
 
     command = None
     filter_pair = None
@@ -100,11 +83,13 @@ def walk_trades(trades_path, market_data_paths):
 
     print('Transaction listing tool')
     print('''
-    Available commands by example:
+    Available filter commands with example argument:
         pair DOGEBTC
         traded DOGE
         main BTC
         asset DOGE
+    
+    Press Enter to continue without filter...
     ''')
     command = raw_input('T> ')
     if command.startswith('pair'):
@@ -125,7 +110,7 @@ def walk_trades(trades_path, market_data_paths):
         run
         quit
 
-    Press Enter to continue...
+    Press Enter to walk transactions step by step...
     ''')
     command = raw_input('T> ')
 
@@ -142,7 +127,7 @@ def walk_trades(trades_path, market_data_paths):
         journal.execute(trade)
         if command == 'run':
             continue
-        print_trade_summary(index, trade, wallet, journal, fees)
+        print_trade_summary(index, trade, wallet, journal)
         command = raw_input('T> ')
         if command == 'quit':
             return
@@ -150,16 +135,14 @@ def walk_trades(trades_path, market_data_paths):
     print '(No more trades.)'
     print('''
     Available commands:
-        summary
         quit
+    
+    Press Enter to continue to summary...
     ''')
-    while True:
-        command = raw_input('\nT> ')
-        if command == 'quit':
-            return
-        if command == 'summary':
-            print_final_summary(wallet, journal, fees)
-            break
+    command = raw_input('\nT> ')
+    if command == 'quit':
+        return
+    print_final_summary(wallet, journal)
 
 
 def export_trades(trades_path, market_data_paths):
@@ -186,8 +169,7 @@ def export_trades(trades_path, market_data_paths):
     action_fee = 'FEE'
     
     wallet = Wallet()
-    fees = Wallet()
-    journal = Journal(wallet, fees)
+    journal = Journal(wallet)
     
     for number, trade in enumerate(trades):
         journal.execute(trade)
