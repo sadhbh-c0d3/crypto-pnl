@@ -40,7 +40,6 @@ class Journal:
         
         position_main = self.main.get(trade.pair, trade.amount.symbol)
         position_traded = self.traded.get(trade.pair, trade.executed.symbol)
-        position_fee = self.traded.get(trade.pair, trade.fee.symbol)
 
         position_all_main = self.all.get(trade.amount.symbol, trade.amount.symbol)
         position_all_traded = self.all.get(trade.executed.symbol, trade.executed.symbol)
@@ -53,10 +52,6 @@ class Journal:
         tracker_main.begin_transaction()
         tracker_traded.begin_transaction()
         tracker_fee.begin_transaction()
-
-        position_fee.pay_fee(trade.fee)
-        position_all_fee.pay_fee(trade.fee)
-        tracker_fee.pay_fee(trade.fee)
 
         if trade.side == SIGN_SELL:
             position_traded.dispose(trade.executed)
@@ -74,5 +69,8 @@ class Journal:
             position_traded.acquire(trade.executed)
             position_all_traded.acquire(trade.executed)
             tracker_traded.acquire(trade.executed)
+
+        position_all_fee.pay_fee(trade.fee)
+        tracker_fee.pay_fee(trade.fee)
     
 
