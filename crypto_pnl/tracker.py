@@ -16,24 +16,31 @@ class Tracker:
         self.dispose_stack = []
         self.matched = []
         self.unpaid_fees = []
-        self.last_transaction_index = 0
+        self.last_transaction_index = -1
 
     def begin_transaction(self):
+        print('BEGIN:    {:5} | {}'.format(self.symbol, self.balance()))
         self.last_transaction_index = len(self.matched)
 
+    def end_transaction(self):
+        print('END:      {:5} | {}'.format(self.symbol, self.balance()))
+
     def acquire(self, asset):
+        print(' ACQUIRE: {}'.format(asset))
         matched, remaining = self.match(asset, self.dispose_stack, SIGN_BUY)
         self.matched.extend(matched)
         if remaining:
             self.acquire_stack.append(remaining)
 
     def dispose(self, asset):
+        print(' DISPOSE: {}'.format(asset))
         matched, remaining = self.match(asset, self.acquire_stack, SIGN_SELL)
         self.matched.extend(matched)
         if remaining:
             self.dispose_stack.append(remaining)
 
     def pay_fee(self, asset):
+        print(' PAY FEE: {}'.format(asset))
         # NOTE Fee is different than dispose as dispose is our earning while fee
         # is our cost. We have to do matching, because in order to pay fee we
         # had to acquire asset for it, and now we need to remove quantity from
@@ -48,7 +55,7 @@ class Tracker:
         matched, remaining = self.match(asset, self.acquire_stack, 0)
         self.matched.extend(matched)
         if remaining:
-            print('UNPAID FEE: {}'.format(remaining)) 
+            print('  UNPAID FEE: {}'.format(remaining))
             self.unpaid_fees.append(remaining)
 
     def balance(self):
@@ -76,11 +83,20 @@ class Tracker:
             else:
                 borrowed = borrowed.split(remaining.quantity)
                 match, remaining = remaining, None
-            matched.append(
+            buy, sell, fee = (
                 (borrowed, match, zero_fee) if sign == SIGN_SELL else (
                 (match, borrowed, zero_fee) if sign == SIGN_BUY else
                 (borrowed, zero_acquire, match))
             )
+            print('  MATCH:  {} ({} - {} = {} {})'.format(match,
+                display_fiat(sell.value_data),
+                display_fiat(buy.value_data),
+                display_fiat(sell.value_data - buy.value_data), FIAT_SYMBOL)
+            )
+            matched.append((buy, sell, fee))
+        if remaining:
+            print('  CARRY:  {} ({} {})'.format(remaining,
+            display_fiat(remaining.value_data), FIAT_SYMBOL))
         return matched, remaining
 
     @classmethod

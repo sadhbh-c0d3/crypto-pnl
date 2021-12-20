@@ -49,28 +49,36 @@ class Journal:
         tracker_traded = self.trackers.get(trade.executed.symbol, trade.executed.symbol)
         tracker_fee = self.trackers.get(trade.fee.symbol, trade.fee.symbol)
 
+        fee_in_pair = tracker_fee.symbol in [tracker_main.symbol, tracker_traded.symbol]
         tracker_main.begin_transaction()
         tracker_traded.begin_transaction()
-        tracker_fee.begin_transaction()
+        if not fee_in_pair:
+            tracker_fee.begin_transaction()
 
         if trade.side == SIGN_SELL:
-            position_traded.dispose(trade.executed)
-            position_all_traded.dispose(trade.executed)
-            tracker_traded.dispose(trade.executed)
-
             position_main.acquire(trade.amount)
             position_all_main.acquire(trade.amount)
             tracker_main.acquire(trade.amount)
         else:
-            position_main.dispose(trade.amount)
-            position_all_main.dispose(trade.amount)
-            tracker_main.dispose(trade.amount)
-
             position_traded.acquire(trade.executed)
             position_all_traded.acquire(trade.executed)
             tracker_traded.acquire(trade.executed)
 
         position_all_fee.pay_fee(trade.fee)
         tracker_fee.pay_fee(trade.fee)
-    
+
+        if trade.side == SIGN_SELL:
+            position_traded.dispose(trade.executed)
+            position_all_traded.dispose(trade.executed)
+            tracker_traded.dispose(trade.executed)
+        else:
+            position_main.dispose(trade.amount)
+            position_all_main.dispose(trade.amount)
+            tracker_main.dispose(trade.amount)
+
+
+        tracker_main.end_transaction()
+        tracker_traded.end_transaction()
+        if not fee_in_pair:
+            tracker_fee.end_transaction()
 
