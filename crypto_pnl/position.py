@@ -8,35 +8,37 @@ class Position:
     Position computed as disposals less acquisitions
     """
     def __init__(self, symbol):
-        self.total_acquire = Asset(0, symbol)
-        self.total_dispose = Asset(0, symbol)
+        self.total_acquire = 0
+        self.total_dispose = 0
+        self.total_fee = 0
         self.symbol = symbol
     
     def acquire(self, asset):
-        self.total_acquire = Asset(
-            self.total_acquire.quantity + asset.quantity,
-            self.total_acquire.symbol)
+        self.total_acquire += asset.quantity
     
     def dispose(self, asset):
-        self.total_dispose = Asset(
-            self.total_dispose.quantity + asset.quantity,
-            self.total_dispose.symbol)
+        self.total_dispose += asset.quantity
+    
+    def pay_fee(self, asset):
+        self.total_fee += asset.quantity
     
     @classmethod
     def headers_str(cls):
-        return ' {} {}|  {} {}'.format(
+        return ' {} {} {}|  {} {}'.format(
             '(ACQUIRED)'.rjust(16), 
             '(DISPOSED)'.rjust(16), 
+            '(FEE)'.rjust(16), 
             '(POSITION)'.rjust(16),
-            '(VALUE)'.rjust(10)
+            '({})'.format(FIAT_SYMBOL).rjust(10)
         )
 
     def __str__(self):
-        position = Asset(self.total_acquire.quantity - self.total_dispose.quantity, self.symbol)
+        position = Asset(self.total_acquire - self.total_dispose - self.total_fee, self.symbol)
         exchange_rates.set_asset_value(position)
-        return '{:16} {:16} | {:16} {:10}'.format(
-            display(self.total_acquire.quantity),
-            display(self.total_dispose.quantity),
+        return '{:16} {:16} {:16} | {:16} {:10}'.format(
+            display(self.total_acquire),
+            display(self.total_dispose),
+            display(self.total_fee),
             display(position.quantity), position.value_str
         )
 

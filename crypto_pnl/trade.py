@@ -30,19 +30,27 @@ class Trade:
         return '\n'.join((
             'Date:        {}'.format(self.date),
             'Pair:        {}'.format(self.pair),
-            'Transaction: {:4} {:16} {:5} ({} EUR) @ {:16} {:5}'.format(
+            'Transaction: {:4} {:16} {:5} ({} EUR)'.format(
                 get_side(self.side), 
                 display(self.executed.quantity), 
                 self.executed.symbol, 
-                self.executed.value_str,
+                self.executed.value_str
+            ),
+            'Unit Price:           {:16} {:5}'.format(
                 display(self.price),
-                self.amount.symbol),
-            'Cost:             {:16}'.format(self.amount),
+                self.amount.symbol
+            ),
+            (
+                'Consideration:    {:16}'.format(self.amount)
+                    if self.side == SIGN_SELL else
+                'Cost:             {:16}'.format(self.amount)
+            ),
             'Fee:              {:16}'.format(self.fee),
-            'Conversion:       {:5} @ {:16} EUR'.format(
-                self.exchange_symbol, 
-                display(self.exchange_rate)
-            )))
+            'Conversion Rate:         1.0 {:5} @ {:16} {}'.format(
+                self.exchange_symbol,
+                display(self.exchange_rate),
+                FIAT_SYMBOL)
+            ))
 
 
 def load_trades(path):
