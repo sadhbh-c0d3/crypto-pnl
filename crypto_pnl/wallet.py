@@ -33,7 +33,11 @@ class Wallet:
         return '{:10} |{:16} {:10}'.format(
             asset.symbol,
             display(asset.quantity), 
-            display_fiat(asset.value_data))
+            (
+                display_fiat(asset.value_data)
+                    if asset.has_value
+                    else '(n/a)'.center(10)
+            ))
     
     @classmethod
     def headers_str(cls):
