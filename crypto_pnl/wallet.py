@@ -1,6 +1,5 @@
 from .core import *
 from .asset import Asset
-from .exchange_rates import exchange_rates
 
 
 class Wallet:
@@ -27,17 +26,15 @@ class Wallet:
             subset.pockets[pocket] = self.pockets[pocket]
         return subset
     
-    def format_pocket(self, pocket):
+    def format_pocket(self, pocket, exchange_rate_calculator):
         asset = Asset(self.pockets[pocket].quantity, self.pockets[pocket].symbol)
-        exchange_rates.set_asset_value(asset)
+        if exchange_rate_calculator:
+            exchange_rate_calculator.set_asset_value(asset)
         return '{:10} |{:16} {:10}'.format(
             asset.symbol,
             display(asset.quantity), 
-            (
-                display_fiat(asset.value_data)
-                    if asset.has_value
-                    else '(n/a)'.center(10)
-            ))
+            asset.value_str
+        )
     
     @classmethod
     def headers_str(cls):
@@ -46,7 +43,10 @@ class Wallet:
             '(QUANTITY)'.rjust(16), 
             '(VALUE)'.rjust(10))
     
-    def __str__(self):
-        return '\n'.join([self.format_pocket(k)
+    def valuated_str(self, exchange_rate_calculator):
+        return '\n'.join([self.format_pocket(k, exchange_rate_calculator)
             for k,v in sorted_items(self.pockets)])
+
+    def __str__(self):
+        raise self.valuated_str(None)
 

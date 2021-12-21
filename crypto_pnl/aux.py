@@ -6,10 +6,11 @@ from .wallet import Wallet
 from .journal import Journal
 from .position import Positions
 from .tracker import Trackers
-from .exchange_rates import exchange_rates
+from .last_prices import LastPrices
+from .exchange_rate_calculator import ExchangeRateCalculator
 
 
-def print_trade_summary(index, trade, wallet, journal):
+def print_trade_summary(index, trade, wallet, journal, exchange_rate_calculator):
     print '\n{}'.format(line_title('[ Trade #{:5}]'.format(index)))
     print trade
 
@@ -18,16 +19,16 @@ def print_trade_summary(index, trade, wallet, journal):
 
     summary_journal_all = Summary()
     summary_journal_all.calculate(journal.all)
-    print summary_journal_all.total
+    print summary_journal_all.total.valuated_str(exchange_rate_calculator)
 
     print '\n{}'.format(line_title('[ Total Main/Traded Account Balance ]'))
     summary_journal_main = Summary()
     summary_journal_main.calculate(journal.main.get_subset([trade.pair]))
-    print '{}   {}:Main'.format(summary_journal_main.total, trade.pair)
+    print '{}   {}:Main'.format(summary_journal_main.total.valuated_str(exchange_rate_calculator), trade.pair)
 
     summary_journal_traded = Summary()
     summary_journal_traded.calculate(journal.traded.get_subset([trade.pair]))
-    print '{}   {}:Traded'.format(summary_journal_traded.total, trade.pair)
+    print '{}   {}:Traded'.format(summary_journal_traded.total.valuated_str(exchange_rate_calculator), trade.pair)
 
     print '\n{}'.format(line_title('[ Individual Assets (fees deducted) ]'))
     trackers = journal.trackers.get_subset([
@@ -35,13 +36,13 @@ def print_trade_summary(index, trade, wallet, journal):
        trade.amount.symbol,
        trade.fee.symbol
     ])
-    print trackers.list_stacks_str
+    print trackers.list_stacks_str(exchange_rate_calculator)
 
     print '\n{}'.format(line_title('[ Asset Balance (post-trade) ]'))
-    print trackers.balance()
+    print trackers.balance().valuated_str(exchange_rate_calculator)
     if trackers.has_unpaid_fees():
         print '\n{}'.format(line_title('[ Unpaid Fees (post-trade) ]'))
-        print trackers.unpaid_fees_balance()
+        print trackers.unpaid_fees_balance().valuated_str(exchange_rate_calculator)
 
     print '\n{}'.format(line_title('[ Transaction Gains (matched individual assets) ]'))
     print Trackers.headers_str()
@@ -50,7 +51,7 @@ def print_trade_summary(index, trade, wallet, journal):
     print
     
 
-def print_final_summary(wallet, journal):
+def print_final_summary(wallet, journal, exchange_rate_calculator):
     print '\n{}'.format(line_title('[ Total Main Account Balance ]'))
     summary_main = Summary()
     summary_main.calculate(journal.main)
@@ -95,13 +96,15 @@ def print_final_summary(wallet, journal):
 
 
 def walk_trades(trades_path, market_data_paths):
-    exchange_rates.set_market_data_streams(
+    last_prices = LastPrices()
+    exchange_rate_calculator = ExchangeRateCalculator(last_prices)
+    wallet = Wallet()
+    journal = Journal(wallet)
+
+    last_prices.set_market_data_streams(
         map(load_market_data, market_data_paths))
 
     trades = load_trades(trades_path)
-
-    wallet = Wallet()
-    journal = Journal(wallet)
 
     command = None
     filter_pair = None
@@ -152,10 +155,11 @@ def walk_trades(trades_path, market_data_paths):
         if filter_asset and filter_asset not in (
                 trade.amount.symbol, trade.executed.symbol):
             continue
+        exchange_rate_calculator.will_execute(trade)
         journal.execute(trade)
         if command == 'run':
             continue
-        print_trade_summary(index, trade, wallet, journal)
+        print_trade_summary(index, trade, wallet, journal, exchange_rate_calculator)
         command = raw_input('T> ')
         if command == 'quit':
             return
@@ -170,11 +174,16 @@ def walk_trades(trades_path, market_data_paths):
     command = raw_input('\nT> ')
     if command == 'quit':
         return
-    print_final_summary(wallet, journal)
+    print_final_summary(wallet, journal, exchange_rate_calculator)
 
 
 def export_trades(trades_path, market_data_paths):
-    exchange_rates.set_market_data_streams(
+    last_prices = LastPrices()
+    exchange_rate_calculator = ExchangeRateCalculator(last_prices)
+    wallet = Wallet()
+    journal = Journal(wallet)
+
+    last_prices.set_market_data_streams(
         map(load_market_data, market_data_paths))
 
     trades = load_trades(trades_path)
@@ -196,10 +205,8 @@ def export_trades(trades_path, market_data_paths):
 
     action_fee = 'FEE'
     
-    wallet = Wallet()
-    journal = Journal(wallet)
-    
     for number, trade in enumerate(trades):
+        exchange_rate_calculator.will_execute(trade)
         journal.execute(trade)
         print ','.join(map(str,(
             number,

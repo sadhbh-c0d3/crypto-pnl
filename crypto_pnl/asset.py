@@ -29,7 +29,7 @@ class Asset:
         if self.has_value:
             return '{:10}'.format(display_fiat(self.value_data))
         else:
-            return '{:10}'.format(0)
+            return '{:10}'.format('(n/a)'.center(10))
 
     def __str__(self):
         return '{:16} {:5}'.format( display(self.quantity), self.symbol)

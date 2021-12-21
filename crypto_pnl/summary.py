@@ -16,8 +16,11 @@ class Summary:
             result.total_dispose += position.total_dispose
             result.total_fee += position.total_fee
     
-    def __str__(self):
+    def valuated_str(self, exchange_rate_calculator):
         return '{}\n{}'.format(
                 Positions.headers_str(),
-                self.total)
+                self.total.valuated_str(exchange_rate_calculator))
+
+    def __str__(self):
+        raise ValueError
 

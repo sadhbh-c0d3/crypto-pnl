@@ -245,9 +245,8 @@ class Trackers:
                 for k,v in sorted_items(self.trackers)
                 for m in v.matched[v.last_transaction_index:])
 
-    @property
-    def list_stacks_str(self):
+    def list_stacks_str(self, exchange_rate_calculator = None):
         return '\n'.join(
-                '{:10} |{}'.format(s.symbol, s)
+                '{:10} |{}'.format(s.symbol, s.valuated_str(exchange_rate_calculator))
                 for s in self.list_stacks())
 
