@@ -26,4 +26,9 @@ class Wallet:
             subset.pockets[pocket] = self.pockets[pocket]
         return subset
     
+    def execute(self, trade):
+        self.add(trade.executed.symbol, trade.executed, trade.side)
+        self.sub(trade.amount.symbol, trade.amount, trade.side)
+        self.sub(trade.fee.symbol, trade.fee)
+
 

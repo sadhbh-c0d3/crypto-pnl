@@ -5,7 +5,7 @@ from .position import Position, Positions
 
 class Tracker:
     """
-    Asset disposal tracker
+    Asset acquisition & disposal tracker
 
     Tracks asset disposals matching with acquisitions.
     Also matches acquisitions with loans.
@@ -16,45 +16,38 @@ class Tracker:
         self.dispose_stack = []
         self.matched = []
         self.unpaid_fees = []
-        self.current_transaction_leg = None
-        self.last_transaction_index = -1
+        self.events = []
 
-    def begin(self, transaction):
-        print('BEGIN:    {}'.format(self.symbol))
-        self.current_transaction_leg = transaction.legs[self.symbol]
-        self.current_transaction_leg.acquire_stack = self.acquire_stack[:]
-        self.current_transaction_leg.dispose_stack = self.dispose_stack[:]
-        self.last_transaction_index = len(self.matched)
+    def branch(self):
+        tracker = Tracker(self.symbol)
+        tracker.acquire_stack = self.acquire_stack[:]
+        tracker.dispose_stack = self.dispose_stack[:]
+        return tracker
 
-    def commit(self):
-        print('END:      {}'.format(self.symbol))
-        self.acquire_stack = self.current_transaction_leg.acquire_stack[:]
-        self.dispose_stack = self.current_transaction_leg.dispose_stack[:]
-        self.matched += self.current_transaction_leg.matched
-        self.unpaid_fees += self.current_transaction_leg.unpaid_fees
-        self.current_transaction_leg = None
+    def merge(self, tracker):
+        self.acquire_stack = tracker.acquire_stack[:]
+        self.dispose_stack = tracker.dispose_stack[:]
+        self.matched += tracker.matched
+        self.unpaid_fees += tracker.unpaid_fees
+        self.events += tracker.events
 
     def acquire(self, asset):
-        print(' ACQUIRE: {} {}'.format(asset.quantity, asset.symbol))
-        matched, remaining = self.match(asset, self.current_transaction_leg.dispose_stack, SIGN_BUY)
-        self.current_transaction_leg.matched.extend(matched)
+        matched, remaining = self.match(asset, self.dispose_stack, SIGN_BUY)
+        self.matched.extend(matched)
         if remaining:
-            self.current_transaction_leg.acquire_stack.append(remaining)
+            self.acquire_stack.append(remaining)
 
     def dispose(self, asset):
-        print(' DISPOSE: {} {}'.format(asset.quantity, asset.symbol))
-        matched, remaining = self.match(asset, self.current_transaction_leg.acquire_stack, SIGN_SELL)
-        self.current_transaction_leg.matched.extend(matched)
+        matched, remaining = self.match(asset, self.acquire_stack, SIGN_SELL)
+        self.matched.extend(matched)
         if remaining:
-            self.current_transaction_leg.dispose_stack.append(remaining)
+            self.dispose_stack.append(remaining)
 
     def pay_fee(self, asset):
-        print(' PAY FEE: {} {}'.format(asset.quantity, asset.symbol))
-        matched, remaining = self.match(asset, self.current_transaction_leg.acquire_stack, 0)
-        self.current_transaction_leg.matched.extend(matched)
+        matched, remaining = self.match(asset, self.acquire_stack, 0)
+        self.matched.extend(matched)
         if remaining:
-            print('  UNPAID FEE: {} {}'.format(remaining.quantity, remaining.symbol))
-            self.current_transaction_leg.unpaid_fees.append(remaining)
+            self.unpaid_fees.append(remaining)
 
     def match(self, asset, stack, sign):
         matched = []
@@ -75,17 +68,10 @@ class Tracker:
                 (match, borrowed, zero_fee) if sign == SIGN_BUY else
                 (borrowed, zero_acquire, match))
             )
-            print('  MATCH:  {} {} ({} - {} = {} {})'.format(
-                match.quantity, match.symbol,
-                display_fiat(sell.value_data),
-                display_fiat(buy.value_data),
-                display_fiat(sell.value_data - buy.value_data), FIAT_SYMBOL)
-            )
             matched.append((buy, sell, fee))
+            self.events.append((MATCH_EVENT, get_match_action(sign), matched[-1]))
         if remaining:
-            print('  CARRY:  {} {} ({} {})'.format(
-                remaining.quantity, remaining.symbol,
-                display_fiat(remaining.value_data), FIAT_SYMBOL))
+            self.events.append((CARRY_EVENT, get_carry_action(sign), remaining))
         return matched, remaining
 
     def summary(self):
@@ -141,7 +127,7 @@ class Tracker:
 
 class Trackers:
     """
-    A set of trackers by traded pair
+    A set of trackers by traded pair, account, or symbol
 
     When Isolated Margin trading, then same symbol exists in many traded pairs.
     Can be also used by symbol, then pair is symbol.
