@@ -1,5 +1,3 @@
-import itertools
-
 from .core import *
 from .asset import Asset, zero_asset
 from .position import Position, Positions
@@ -22,7 +20,7 @@ class Transaction:
 
     def get_leg(self, tracker):
         try:
-            return next(itertools.ifilter(lambda x: x.base_tracker is tracker, self.legs))
+            return next(x for x in self.legs if x.base_tracker is tracker)
         except StopIteration:
             leg = TransactionLeg(tracker)
             self.legs.append(leg)
