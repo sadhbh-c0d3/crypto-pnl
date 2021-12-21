@@ -22,34 +22,38 @@ class Tracker:
         tracker = Tracker(self.symbol)
         tracker.acquire_stack = self.acquire_stack[:]
         tracker.dispose_stack = self.dispose_stack[:]
+        tracker.unpaid_fees = self.unpaid_fees[:]
         return tracker
 
     def merge(self, tracker):
         self.acquire_stack = tracker.acquire_stack[:]
         self.dispose_stack = tracker.dispose_stack[:]
+        self.unpaid_fees = tracker.unpaid_fees[:]
         self.matched += tracker.matched
-        self.unpaid_fees += tracker.unpaid_fees
         self.events += tracker.events
 
     def acquire(self, asset):
-        matched, remaining = self.match(asset, self.dispose_stack, SIGN_BUY)
+        if self.unpaid_fees:
+            matched, asset = self.match(asset, self.unpaid_fees, REPAY_FEE_MATCH_ACTION)
+            self.matched.extend(matched)
+        matched, remaining = self.match(asset, self.dispose_stack, BUY_MATCH_ACTION)
         self.matched.extend(matched)
         if remaining:
             self.acquire_stack.append(remaining)
 
     def dispose(self, asset):
-        matched, remaining = self.match(asset, self.acquire_stack, SIGN_SELL)
+        matched, remaining = self.match(asset, self.acquire_stack, SELL_MATCH_ACTION)
         self.matched.extend(matched)
         if remaining:
             self.dispose_stack.append(remaining)
 
     def pay_fee(self, asset):
-        matched, remaining = self.match(asset, self.acquire_stack, 0)
+        matched, remaining = self.match(asset, self.acquire_stack, PAY_FEE_MATCH_ACTION)
         self.matched.extend(matched)
         if remaining:
             self.unpaid_fees.append(remaining)
 
-    def match(self, asset, stack, sign):
+    def match(self, asset, stack, action):
         matched = []
         zero_acquire = zero_asset(asset.symbol, ACQUIRE_VALUE)
         zero_fee = zero_asset(asset.symbol, FEE_VALUE)
@@ -64,14 +68,15 @@ class Tracker:
                 borrowed = borrowed.split(remaining.quantity)
                 match, remaining = remaining, None
             buy, sell, fee = (
-                (borrowed, match, zero_fee) if sign == SIGN_SELL else (
-                (match, borrowed, zero_fee) if sign == SIGN_BUY else
-                (borrowed, zero_acquire, match))
+                (borrowed, match, zero_fee) if action == SELL_MATCH_ACTION else (
+                (match, borrowed, zero_fee) if action == BUY_MATCH_ACTION else (
+                (borrowed, zero_acquire, match) if action == PAY_FEE_MATCH_ACTION else
+                (match, zero_acquire, borrowed)))
             )
             matched.append((buy, sell, fee))
-            self.events.append((MATCH_EVENT, get_match_action(sign), matched[-1]))
-        if remaining:
-            self.events.append((CARRY_EVENT, get_carry_action(sign), remaining))
+            self.events.append((MATCH_EVENT, action, matched[-1]))
+        if remaining and (action != REPAY_FEE_MATCH_ACTION):
+            self.events.append((CARRY_EVENT, get_carry_action(action), remaining))
         return matched, remaining
 
     def summary(self):
@@ -118,7 +123,7 @@ class Tracker:
 
     def unpaid_fees_balance(self):
         position = Position(self.symbol)
-        position.total_dispose = sum(asset.quantity for asset in self.unpaid_fees)
+        position.total_fee = sum(asset.quantity for asset in self.unpaid_fees)
         return position
 
     def has_unpaid_fees(self):

@@ -3,11 +3,11 @@ from .core import *
 
 class Asset:
     def __init__(self, quantity, symbol):
-        self.quantity = Decimal(quantity)
+        self.quantity = Decimal(quantity).quantize(ZERO_LEVEL)
         self.symbol = symbol
 
     def set_value(self, value_data, value_type):
-        self.value_data = Decimal(value_data)
+        self.value_data = Decimal(value_data).quantize(FIAT_QUANTIZER)
         self.value_type = value_type
 
     @property
@@ -16,11 +16,11 @@ class Asset:
     
     def split(self, quantity):
         total_quantity = self.quantity
-        self.quantity -= quantity
+        self.quantity = (self.quantity - quantity).quantize(ZERO_LEVEL)
         other = Asset(quantity, self.symbol)
         if self.has_value:
             unit_value = self.value_data / total_quantity
-            self.value_data = convert(self.quantity, unit_value)
+            self.value_data = convert(self.quantity, unit_value).quantize(FIAT_QUANTIZER)
             other.set_value(convert(quantity, unit_value), self.value_type)
         return other
 

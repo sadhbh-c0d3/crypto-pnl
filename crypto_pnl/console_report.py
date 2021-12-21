@@ -10,8 +10,9 @@ from .console_render import (
 )
 
 class ConsoleReport:
-    def __init__(self, exchange_rate_calculator):
+    def __init__(self, exchange_rate_calculator, options):
         self.exchange_rate_calculator = exchange_rate_calculator
+        self.options = options
 
     def print_trade_summary(self, index, trade, journal):
         render = Render(self.exchange_rate_calculator)
@@ -27,18 +28,19 @@ class ConsoleReport:
         summary_journal_all.calculate(journal.position_tracker.all)
         print render.positions.render(summary_journal_all.total)
 
-        print '\n{}\n'.format(line_section('[ Traded Pair Account Balance ]'))
-        summary_journal_main = Summary()
-        summary_journal_main.calculate(journal.position_tracker.main.get_subset([trade.pair]))
-        print '{}   {}:Main'.format(
-            render.positions.render(summary_journal_main.total),
-            trade.pair)
+        if 'show_traded_pair' in self.options:
+            print '\n{}\n'.format(line_section('[ Traded Pair Account Balance ]'))
+            summary_journal_main = Summary()
+            summary_journal_main.calculate(journal.position_tracker.main.get_subset([trade.pair]))
+            print '{}   {}:Main'.format(
+                render.positions.render(summary_journal_main.total),
+                trade.pair)
 
-        summary_journal_traded = Summary()
-        summary_journal_traded.calculate(journal.position_tracker.traded.get_subset([trade.pair]))
-        print '{}   {}:Traded'.format(
-            render.positions.render(summary_journal_traded.total),
-            trade.pair)
+            summary_journal_traded = Summary()
+            summary_journal_traded.calculate(journal.position_tracker.traded.get_subset([trade.pair]))
+            print '{}   {}:Traded'.format(
+                render.positions.render(summary_journal_traded.total),
+                trade.pair)
 
         print '\n\n{}\n'.format(line_title('[ Asset Portfolio ]'))
         print RenderPositions.render_headers()
@@ -68,15 +70,16 @@ class ConsoleReport:
     def print_final_summary(self, journal):
         render = Render(self.exchange_rate_calculator)
 
-        print '\n{}'.format(line_title('[ Total Main Account Balance ]'))
-        summary_main = Summary()
-        summary_main.calculate(journal.position_tracker.main)
-        print render.summary.render(summary_main)
+        if 'show_traded_pair' in self.options:
+            print '\n{}'.format(line_title('[ Total Main Account Balance ]'))
+            summary_main = Summary()
+            summary_main.calculate(journal.position_tracker.main)
+            print render.summary.render(summary_main)
 
-        print '\n{}'.format(line_title('[ Total Traded Account Balance ]'))
-        summary_traded = Summary()
-        summary_traded.calculate(journal.position_tracker.traded)
-        print render.summary.render(summary_traded)
+            print '\n{}'.format(line_title('[ Total Traded Account Balance ]'))
+            summary_traded = Summary()
+            summary_traded.calculate(journal.position_tracker.traded)
+            print render.summary.render(summary_traded)
 
         print '\n{}'.format(line_title('[ Total Account Balance ]'))
         summary_wallet = Summary()
