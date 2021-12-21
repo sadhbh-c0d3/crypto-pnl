@@ -1,16 +1,17 @@
 from .core import *
-from .position import Positions
-from .tracker import Trackers
 
 
 class Journal:
-    def __init__(self, wallet):
-        self.main = Positions()
-        self.traded = Positions()
-        self.all = Positions()
-        self.trackers = Trackers()
+    def __init__(self, wallet, position_tracker, transaction_engine):
         self.wallet = wallet
+        self.position_tracker = position_tracker
+        self.transaction_engine = transaction_engine
+        self.transactions = []
     
+    @property
+    def last_transaction(self):
+        return self.transactions[-1]
+
     def execute(self, trade):
         """
         Execute trade
@@ -30,51 +31,7 @@ class Journal:
             Share Matching Rules:
                 https://www.whitefieldtax.co.uk/cgt-share-matching-rules-worked-example/
         """
-        self.wallet.add(trade.executed.symbol, trade.executed, trade.side)
-        self.wallet.sub(trade.amount.symbol, trade.amount, trade.side)
-
-        self.wallet.sub(trade.fee.symbol, trade.fee)
-        
-        position_main = self.main.get(trade.pair, trade.amount.symbol)
-        position_traded = self.traded.get(trade.pair, trade.executed.symbol)
-
-        position_all_main = self.all.get(trade.amount.symbol, trade.amount.symbol)
-        position_all_traded = self.all.get(trade.executed.symbol, trade.executed.symbol)
-        position_all_fee = self.all.get(trade.fee.symbol, trade.fee.symbol)
-
-        tracker_main = self.trackers.get(trade.amount.symbol, trade.amount.symbol)
-        tracker_traded = self.trackers.get(trade.executed.symbol, trade.executed.symbol)
-        tracker_fee = self.trackers.get(trade.fee.symbol, trade.fee.symbol)
-
-        fee_in_pair = tracker_fee.symbol in [tracker_main.symbol, tracker_traded.symbol]
-        tracker_main.begin_transaction()
-        tracker_traded.begin_transaction()
-        if not fee_in_pair:
-            tracker_fee.begin_transaction()
-
-        if trade.side == SIGN_SELL:
-            position_main.acquire(trade.amount)
-            position_all_main.acquire(trade.amount)
-            tracker_main.acquire(trade.amount)
-        else:
-            position_traded.acquire(trade.executed)
-            position_all_traded.acquire(trade.executed)
-            tracker_traded.acquire(trade.executed)
-
-        position_all_fee.pay_fee(trade.fee)
-        tracker_fee.pay_fee(trade.fee)
-
-        if trade.side == SIGN_SELL:
-            position_traded.dispose(trade.executed)
-            position_all_traded.dispose(trade.executed)
-            tracker_traded.dispose(trade.executed)
-        else:
-            position_main.dispose(trade.amount)
-            position_all_main.dispose(trade.amount)
-            tracker_main.dispose(trade.amount)
-
-        tracker_main.end_transaction()
-        tracker_traded.end_transaction()
-        if not fee_in_pair:
-            tracker_fee.end_transaction()
+        self.wallet.execute(trade)
+        self.position_tracker.execute(trade)
+        self.transactions.append(self.transaction_engine.execute(trade))
 

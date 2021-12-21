@@ -3,7 +3,8 @@ from .trade import load_trades
 from .market_data import load_market_data
 from .wallet import Wallet
 from .journal import Journal
-from .position import Positions
+from .position import Positions, PositionTracker
+from .transaction import TransactionEngine
 from .tracker import Trackers
 from .last_prices import LastPrices
 from .exchange_rate_calculator import ExchangeRateCalculator
@@ -14,7 +15,9 @@ def export_trades(trades_path, market_data_paths):
     last_prices = LastPrices()
     exchange_rate_calculator = ExchangeRateCalculator(last_prices)
     wallet = Wallet()
-    journal = Journal(wallet)
+    position_tracker = PositionTracker()
+    transaction_engine = TransactionEngine()
+    journal = Journal(wallet, position_tracker, transaction_engine)
 
     last_prices.set_market_data_streams(
         map(load_market_data, market_data_paths))
@@ -30,14 +33,6 @@ def export_trades(trades_path, market_data_paths):
             'cost ({})'.format(FIAT_SYMBOL),
     ))
 
-    def action_main(side):
-        return 'DISPOSE' if side != SIGN_SELL else 'ACQUIRE'
-
-    def action_executed(side):
-        return 'DISPOSE' if side == SIGN_SELL else 'ACQUIRE'
-
-    action_fee = 'FEE'
-
     for number, trade in enumerate(trades):
         exchange_rate_calculator.will_execute(trade)
         journal.execute(trade)
@@ -45,7 +40,7 @@ def export_trades(trades_path, market_data_paths):
             number,
             trade.date,
             trade.pair,
-            action_executed(trade.side),
+            get_traded_action(trade.side),
             trade.executed.symbol,
             trade.executed.quantity * trade.side,
             display_fiat(trade.executed.value * trade.side),
@@ -54,7 +49,7 @@ def export_trades(trades_path, market_data_paths):
             number,
             trade.date,
             trade.pair,
-            action_main(trade.side),
+            get_main_action(trade.side),
             trade.amount.symbol,
             trade.amount.quantity * -trade.side,
             display_fiat(trade.amount.value * -trade.side),
@@ -63,7 +58,7 @@ def export_trades(trades_path, market_data_paths):
             number,
             trade.date,
             trade.pair,
-            action_fee,
+            FEE_ACTION,
             trade.fee.symbol,
             -trade.fee.quantity,
             display_fiat(-trade.fee.value),

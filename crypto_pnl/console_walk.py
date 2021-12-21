@@ -3,7 +3,8 @@ from .trade import load_trades
 from .market_data import load_market_data
 from .wallet import Wallet
 from .journal import Journal
-from .position import Positions
+from .position import Positions, PositionTracker
+from .transaction import TransactionEngine
 from .tracker import Trackers
 from .last_prices import LastPrices
 from .exchange_rate_calculator import ExchangeRateCalculator
@@ -14,7 +15,9 @@ def walk_trades(trades_path, market_data_paths):
     last_prices = LastPrices()
     exchange_rate_calculator = ExchangeRateCalculator(last_prices)
     wallet = Wallet()
-    journal = Journal(wallet)
+    position_tracker = PositionTracker()
+    transaction_engine = TransactionEngine()
+    journal = Journal(wallet, position_tracker, transaction_engine)
 
     report = ConsoleReport(exchange_rate_calculator)
 
@@ -76,7 +79,7 @@ def walk_trades(trades_path, market_data_paths):
         journal.execute(trade)
         if command == 'run':
             continue
-        report.print_trade_summary(index, trade, wallet, journal)
+        report.print_trade_summary(index, trade, journal)
         command = raw_input('T> ')
         if command == 'quit':
             return
@@ -91,6 +94,6 @@ def walk_trades(trades_path, market_data_paths):
     command = raw_input('\nT> ')
     if command == 'quit':
         return
-    report.print_final_summary(wallet, journal)
+    report.print_final_summary(journal)
 
 

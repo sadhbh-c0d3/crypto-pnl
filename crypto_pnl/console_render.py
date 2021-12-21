@@ -176,9 +176,14 @@ class RenderTracker:
     def render_matches(cls, tracker):
         return '\n'.join(map(cls.render_match(tracker), tracker.matched))
 
+
     @classmethod
-    def render_last_transaction(cls, tracker):
-        return '\n'.join(map(cls.render_match(tracker), tracker.matched[tracker.last_transaction_index:]))
+    def render_event(cls, tracker, e):
+        etype, action, data = e
+        if etype == MATCH_EVENT:
+            return '{:10} | {:10} | {:16} {:16} {:16}'.format(etype, action, *(display(x.quantity) for x in data))
+        elif etype == CARRY_EVENT:
+            return '{:10} | {:10} | {:16}'.format(etype, action, display(data.quantity))
 
 
 class RenderTrackers:
@@ -196,17 +201,35 @@ class RenderTrackers:
                 for k,v in sorted_items(trackers.trackers)
                 for m in v.matched)
 
-    @classmethod
-    def render_last_transaction(cls, trackers):
-        return '\n'.join(
-                '{:10} |{}'.format(k, RenderTracker.render_match(v,m))
-                for k,v in sorted_items(trackers.trackers)
-                for m in v.matched[v.last_transaction_index:])
-
     def render_stacks(self, trackers):
         return '\n'.join(
                 '{:10} |{}'.format(s.symbol, self.render_position.render(s))
                 for s in trackers.list_stacks())
+
+    def render_events(self, trackers):
+        return '\n'.join(
+                '{:10} |{}'.format(k, RenderTracker.render_event(v, e))
+                for k,v in sorted_items(trackers.trackers)
+                for e in v.events)
+
+
+class RenderTransaction:
+    def __init__(self, render_trackers):
+        self.render_trackers = render_trackers
+
+    @classmethod
+    def render_headers(cls):
+        return '{:10} |{}'.format('', RenderTracker.render_headers())
+
+    @classmethod
+    def render_matches(cls, transaction):
+        return '\n'.join(
+                '{:10} |{}'.format(v.tracker.symbol, RenderTracker.render_match(v.tracker,m))
+                for v in transaction.legs
+                for m in v.tracker.matched)
+
+    def render_stacks(self, transaction):
+        return self.render_trackers.render_stacks(transaction.trackers)
 
 
 class Render:
@@ -215,5 +238,6 @@ class Render:
         self.position = RenderPosition(exchange_rate_calculator)
         self.positions = RenderPositions(self.position)
         self.trackers = RenderTrackers(self.position)
+        self.transaction = RenderTransaction(self.trackers)
         self.summary = RenderSummary(self.positions)
 

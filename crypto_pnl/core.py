@@ -32,6 +32,18 @@ DISPOSE_VALUE = 'earn'
 FEE_VALUE = 'fee'
 GAIN_VALUE = 'gain'
 
+MATCH_EVENT = 'match'
+CARRY_EVENT = 'carry'
+
+BUY_MATCH_ACTION = 'buy';
+SELL_MATCH_ACTION = 'sell';
+PAY_FEE_MATCH_ACTION = 'pay fee';
+
+BORROW_CARRY_ACTION = 'borrow';
+STACK_CARRY_ACTION = 'stack';
+UNPAID_FEE_CARRY_ACTION = 'unpaid fee';
+
+
 LINE_LENGTH = 110
 
 
@@ -62,6 +74,28 @@ def parse_side(side):
 
 def get_side(quantity):
     return SIDE_SELL if quantity < 0 else SIDE_BUY
+
+
+def get_main_action(side):
+    return DISPOSE_ACTION if side != SIGN_SELL else ACQUIRE_ACTION
+
+
+def get_traded_action(side):
+    return DISPOSE_ACTION if side == SIGN_SELL else ACQUIRE_ACTION
+
+
+def get_match_action(side):
+    return (
+        SELL_MATCH_ACTION if side == SIGN_SELL else (
+        BUY_MATCH_ACTION if side == SIGN_BUY else
+        PAY_FEE_MATCH_ACTION))
+
+
+def get_carry_action(side):
+    return (
+        BORROW_CARRY_ACTION if side == SIGN_SELL else (
+        STACK_CARRY_ACTION if side == SIGN_BUY else
+        UNPAID_FEE_CARRY_ACTION))
 
 
 def get_main_value_type(sign):
