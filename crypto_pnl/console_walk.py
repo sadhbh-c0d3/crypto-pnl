@@ -19,8 +19,6 @@ def walk_trades(trades_path, market_data_paths):
     transaction_engine = TransactionEngine()
     journal = Journal(wallet, position_tracker, transaction_engine)
 
-    report = ConsoleReport(exchange_rate_calculator)
-
     last_prices.set_market_data_streams(
         map(load_market_data, market_data_paths))
 
@@ -65,7 +63,12 @@ def walk_trades(trades_path, market_data_paths):
     ''')
     command = raw_input('T> ')
 
+    options = {}
+    report = ConsoleReport(exchange_rate_calculator, options)
+
     for index, trade in enumerate(trades):
+        exchange_rate_calculator.will_execute(trade)
+        journal.execute(trade)
         if filter_pair and trade.pair != filter_pair:
             continue
         if filter_traded and trade.executed.symbol != filter_traded:
@@ -75,8 +78,6 @@ def walk_trades(trades_path, market_data_paths):
         if filter_asset and filter_asset not in (
                 trade.amount.symbol, trade.executed.symbol):
             continue
-        exchange_rate_calculator.will_execute(trade)
-        journal.execute(trade)
         if command == 'run':
             continue
         report.print_trade_summary(index, trade, journal)

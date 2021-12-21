@@ -7,19 +7,19 @@ class Position:
     Position computed as disposals less acquisitions
     """
     def __init__(self, symbol):
-        self.total_acquire = 0
-        self.total_dispose = 0
-        self.total_fee = 0
+        self.total_acquire = Decimal(0)
+        self.total_dispose = Decimal(0)
+        self.total_fee = Decimal(0)
         self.symbol = symbol
     
     def acquire(self, asset):
-        self.total_acquire += asset.quantity
+        self.total_acquire = (self.total_acquire + asset.quantity).quantize(ZERO_LEVEL)
     
     def dispose(self, asset):
-        self.total_dispose += asset.quantity
+        self.total_dispose = (self.total_dispose + asset.quantity).quantize(ZERO_LEVEL)
     
     def pay_fee(self, asset):
-        self.total_fee += asset.quantity
+        self.total_fee = (self.total_fee + asset.quantity).quantize(ZERO_LEVEL)
     
 class Positions:
     """
