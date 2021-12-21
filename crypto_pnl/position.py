@@ -21,31 +21,6 @@ class Position:
     def pay_fee(self, asset):
         self.total_fee += asset.quantity
     
-    @classmethod
-    def headers_str(cls):
-        return ' {} {} {}|  {} {}'.format(
-            '(ACQUIRED)'.rjust(16), 
-            '(DISPOSED)'.rjust(16), 
-            '(FEE)'.rjust(16), 
-            '(POSITION)'.rjust(16),
-            '({})'.format(FIAT_SYMBOL).rjust(10)
-        )
-
-    def valuated_str(self, exchange_rate_calculator):
-        position = Asset(self.total_acquire - self.total_dispose - self.total_fee, self.symbol)
-        if exchange_rate_calculator:
-            exchange_rate_calculator.set_asset_value(position)
-        return '{:16} {:16} {:16} | {:16} {:10}'.format(
-            display(self.total_acquire),
-            display(self.total_dispose),
-            display(self.total_fee),
-            display(position.quantity),
-            position.value_str
-        )
-
-    def __str__(self):
-        return self.valuated_str(None)
-
 class Positions:
     """
     A set of positions by traded pair
@@ -66,16 +41,4 @@ class Positions:
         for pair in pairs:
             subset.positions[pair] = self.positions[pair]
         return subset
-    
-    @classmethod
-    def headers_str(cls):
-        return '{:10} |{}'.format('', Position.headers_str())
-
-    def valuated_str(self, exchange_rate_calculator):
-        return '\n'.join(
-                '{:10} |{}'.format(k, v.valuated_str(exchange_rate_calculator))
-                for k,v in sorted_items(self.positions))
-
-    def __str__(self):
-        return self.valuated_str(None)
 

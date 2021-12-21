@@ -8,27 +8,38 @@ from .position import Positions
 from .tracker import Trackers
 from .last_prices import LastPrices
 from .exchange_rate_calculator import ExchangeRateCalculator
+from .console_render import (
+    Wallet as RenderWallet,
+    Summary as RenderSummary,
+    Positions as RenderPositions,
+    Trackers as RenderTrackers,
+    Trade as RenderTrade,
+)
 
 
 def print_trade_summary(index, trade, wallet, journal, exchange_rate_calculator):
     print '\n{}'.format(line_title('[ Trade #{:5}]'.format(index)))
-    print trade
+    print RenderTrade.info_str(trade)
 
     print '\n{}'.format(line_title('[ Total Account Balance ]'))
-    print '{} (ACCOUNT)'.format(Positions.headers_str())
+    print '{} (ACCOUNT)'.format(RenderPositions.headers_str())
 
     summary_journal_all = Summary()
     summary_journal_all.calculate(journal.all)
-    print summary_journal_all.total.valuated_str(exchange_rate_calculator)
+    print RenderPositions.valuated_str(summary_journal_all.total, exchange_rate_calculator)
 
     print '\n{}'.format(line_title('[ Total Main/Traded Account Balance ]'))
     summary_journal_main = Summary()
     summary_journal_main.calculate(journal.main.get_subset([trade.pair]))
-    print '{}   {}:Main'.format(summary_journal_main.total.valuated_str(exchange_rate_calculator), trade.pair)
+    print '{}   {}:Main'.format(
+        RenderPositions.valuated_str(summary_journal_main.total, exchange_rate_calculator),
+        trade.pair)
 
     summary_journal_traded = Summary()
     summary_journal_traded.calculate(journal.traded.get_subset([trade.pair]))
-    print '{}   {}:Traded'.format(summary_journal_traded.total.valuated_str(exchange_rate_calculator), trade.pair)
+    print '{}   {}:Traded'.format(
+        RenderPositions.valuated_str(summary_journal_traded.total, exchange_rate_calculator),
+        trade.pair)
 
     print '\n{}'.format(line_title('[ Individual Assets (fees deducted) ]'))
     trackers = journal.trackers.get_subset([
@@ -36,17 +47,17 @@ def print_trade_summary(index, trade, wallet, journal, exchange_rate_calculator)
        trade.amount.symbol,
        trade.fee.symbol
     ])
-    print trackers.list_stacks_str(exchange_rate_calculator)
+    print RenderTrackers.list_stacks_str(trackers, exchange_rate_calculator)
 
     print '\n{}'.format(line_title('[ Asset Balance (post-trade) ]'))
-    print trackers.balance().valuated_str(exchange_rate_calculator)
+    print RenderPositions.valuated_str(trackers.balance(), exchange_rate_calculator)
     if trackers.has_unpaid_fees():
         print '\n{}'.format(line_title('[ Unpaid Fees (post-trade) ]'))
-        print trackers.unpaid_fees_balance().valuated_str(exchange_rate_calculator)
+        print RenderPositions.valuated_str(trackers.unpaid_fees_balance(), exchange_rate_calculator)
 
     print '\n{}'.format(line_title('[ Transaction Gains (matched individual assets) ]'))
-    print Trackers.headers_str()
-    print trackers.last_transaction_str
+    print RenderTrackers.headers_str()
+    print RenderTrackers.last_transaction_str(trackers)
 
     print
     
@@ -55,42 +66,42 @@ def print_final_summary(wallet, journal, exchange_rate_calculator):
     print '\n{}'.format(line_title('[ Total Main Account Balance ]'))
     summary_main = Summary()
     summary_main.calculate(journal.main)
-    print summary_main
+    print RenderSummary.valuated_str(summary_main, exchange_rate_calculator)
 
     print '\n{}'.format(line_title('[ Total Traded Account Balance ]'))
     summary_traded = Summary()
     summary_traded.calculate(journal.traded)
-    print summary_traded
+    print RenderSummary.valuated_str(summary_traded, exchange_rate_calculator)
 
     print '\n{}'.format(line_title('[ Total Account Balance ]'))
     summary_wallet = Summary()
     summary_wallet.calculate(journal.all)
-    print summary_wallet
+    print RenderSummary.valuated_str(summary_wallet, exchange_rate_calculator)
 
     print '\n{}'.format(line_title('[ All Individual Assets (fees deducted) ]'))
-    print Positions.headers_str()
-    print journal.trackers.list_stacks_str
+    print RenderPositions.headers_str()
+    print RenderTrackers.list_stacks_str(journal.trackers, exchange_rate_calculator)
 
     print '\n{}'.format(line_title('[ All Asset Balance ]'))
-    print Positions.headers_str()
+    print RenderPositions.headers_str()
     trackers_balance = journal.trackers.balance()
     trackers_unpaid_fees = journal.trackers.unpaid_fees_balance()
-    print trackers_balance
+    print RenderPositions.valuated_str(trackers_balance, exchange_rate_calculator)
     print '\n{}'.format(line_title('[ All Unpaid Fees ]'))
-    print trackers_unpaid_fees
+    print RenderPositions.valuated_str(trackers_unpaid_fees, exchange_rate_calculator)
     summary_trackers = Summary()
     summary_trackers.calculate(trackers_balance)
     summary_trackers.calculate(trackers_unpaid_fees)
     print '\n{}'.format(line_title('[ Remaining Asset Balance (after fees are paid) ]'))
-    print summary_trackers
+    print RenderSummary.valuated_str(summary_trackers, exchange_rate_calculator)
 
     print '\n{}'.format(line_title('[ Total Transaction Gains (summary of all individual matched assets) ]'))
-    print Trackers.headers_str()
-    print journal.trackers.summary()
+    print RenderTrackers.headers_str()
+    print RenderTrackers.matched_str(journal.trackers.summary())
 
     print '\n{}'.format(line_title('[ Wallet (remaining total amounts of assets) ]'))
-    print Wallet.headers_str()
-    print wallet
+    print RenderWallet.headers_str()
+    print RenderWallet.valuated_str(wallet, exchange_rate_calculator)
 
     print
 

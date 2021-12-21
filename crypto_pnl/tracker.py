@@ -19,11 +19,11 @@ class Tracker:
         self.last_transaction_index = -1
 
     def begin_transaction(self):
-        print('BEGIN:    {:5} | {}'.format(self.symbol, self.balance()))
+        print('BEGIN:    {}'.format(self.symbol))
         self.last_transaction_index = len(self.matched)
 
     def end_transaction(self):
-        print('END:      {:5} | {}'.format(self.symbol, self.balance()))
+        print('END:      {}'.format(self.symbol))
 
     def acquire(self, asset):
         print(' ACQUIRE: {}'.format(asset))
@@ -114,17 +114,6 @@ class Tracker:
             display_fiat(remaining.value_data), FIAT_SYMBOL))
         return matched, remaining
 
-    @classmethod
-    def headers_str(cls):
-        return ' {} {} {}|  {} {} {} '.format(
-            ' (ACQUIRED)'.rjust(16),
-            ' (DISPOSED)'.rjust(16),
-            ' (FEE PAID)'.rjust(16),
-            ' (COST)'.rjust(10),
-            ' (EARN)'.rjust(10), 
-            ' (GAIN)'.rjust(10)
-        )
-
     def summary(self):
         tracker = Tracker(self.symbol)
         total_buy = 0
@@ -148,26 +137,6 @@ class Tracker:
         fee.set_value(total_fee_cost, FEE_VALUE)
         tracker.matched.append((buy, sell, fee))
         return tracker
-
-    def format_match(self, match):
-        buy, sell, fee = match
-        position = Asset(sell.quantity - buy.quantity - fee.quantity, self.symbol)
-        position.set_value(sell.value_data - buy.value_data, GAIN_VALUE)
-        return '{:16} {:16} {:16} | {:10} {:10} {:10} '.format(
-            display(buy.quantity), 
-            display(sell.quantity), 
-            display(fee.quantity), 
-            buy.value_str.rjust(10), 
-            sell.value_str.rjust(10), 
-            position.value_str.rjust(10)
-        )
-
-    def __str__(self):
-        return '\n'.join(map(self.format_match, self.matched))
-
-    @property
-    def last_transaction_str(self):
-        return '\n'.join(map(self.format_match, self.matched[self.last_transaction_index:]))
 
 
 class Trackers:
@@ -227,26 +196,3 @@ class Trackers:
         for k,v in self.trackers.items():
            summary.trackers[k] = v.summary()
         return summary
-
-    @classmethod
-    def headers_str(cls):
-        return '{:10} |{}'.format('', Tracker.headers_str())
-
-    def __str__(self):
-        return '\n'.join(
-                '{:10} |{}'.format(k, v.format_match(m))
-                for k,v in sorted_items(self.trackers)
-                for m in v.matched)
-
-    @property
-    def last_transaction_str(self):
-        return '\n'.join(
-                '{:10} |{}'.format(k, v.format_match(m))
-                for k,v in sorted_items(self.trackers)
-                for m in v.matched[v.last_transaction_index:])
-
-    def list_stacks_str(self, exchange_rate_calculator = None):
-        return '\n'.join(
-                '{:10} |{}'.format(s.symbol, s.valuated_str(exchange_rate_calculator))
-                for s in self.list_stacks())
-
