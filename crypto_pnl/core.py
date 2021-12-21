@@ -153,7 +153,11 @@ def fit_line(t, c):
 
 
 def line_title(t):
-    return fit_line(t,'.')
+    return fit_line(t,'=')
+
+
+def line_section(t):
+    return fit_line(t,'-')
 
 
 def line_trade_summary():
