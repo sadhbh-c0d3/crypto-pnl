@@ -1,7 +1,6 @@
 from .core import *
 from .position import Positions
 from .tracker import Trackers
-from .exchange_rates import exchange_rates
 
 
 class Journal:
@@ -31,8 +30,6 @@ class Journal:
             Share Matching Rules:
                 https://www.whitefieldtax.co.uk/cgt-share-matching-rules-worked-example/
         """
-        exchange_rates.will_execute(trade)
-        
         self.wallet.add(trade.executed.symbol, trade.executed, trade.side)
         self.wallet.sub(trade.amount.symbol, trade.amount, trade.side)
 

@@ -28,17 +28,6 @@ class MarketData:
         self.low_price = parse_price(low_price)
         self.close_price = parse_price(close_price)
     
-    def info(self):
-        return '\n'.join([
-            'Date:           {}'.format(self.date),
-            'Symbol(Main):   {}'.format(self.symbol_main),
-            'Symbol(Traded): {}'.format(self.symbol_traded),
-            'Open:           {}'.format(self.open_price),
-            'High:           {}'.format(self.high_price),
-            'Low:            {}'.format(self.low_price),
-            'Close:          {}'.format(self.close_price),
-        ])
-    
     @property
     def value(self):
         return (
@@ -46,16 +35,6 @@ class MarketData:
             self.close_price + 
             2 * (self.high_price + self.low_price)
         ) / 6
-
-    def __str__(self):
-        return '{} {} / {}  {} {} {} {}'.format(
-            self.date, 
-            self.symbol_traded, 
-            self.symbol_main,
-            self.open_price,
-            self.high_price,
-            self.low_price,
-            self.close_price)
 
 
 def load_market_data(path):

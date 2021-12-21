@@ -15,9 +15,3 @@ class Summary:
             result.total_acquire += position.total_acquire
             result.total_dispose += position.total_dispose
             result.total_fee += position.total_fee
-    
-    def __str__(self):
-        return '{}\n{}'.format(
-                Positions.headers_str(),
-                self.total)
-

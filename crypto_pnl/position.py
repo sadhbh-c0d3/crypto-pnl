@@ -1,6 +1,5 @@
 from .core import *
 from .asset import Asset
-from .exchange_rates import exchange_rates
 
 
 class Position:
@@ -22,27 +21,6 @@ class Position:
     def pay_fee(self, asset):
         self.total_fee += asset.quantity
     
-    @classmethod
-    def headers_str(cls):
-        return ' {} {} {}|  {} {}'.format(
-            '(ACQUIRED)'.rjust(16), 
-            '(DISPOSED)'.rjust(16), 
-            '(FEE)'.rjust(16), 
-            '(POSITION)'.rjust(16),
-            '({})'.format(FIAT_SYMBOL).rjust(10)
-        )
-
-    def __str__(self):
-        position = Asset(self.total_acquire - self.total_dispose - self.total_fee, self.symbol)
-        exchange_rates.set_asset_value(position)
-        return '{:16} {:16} {:16} | {:16} {:10}'.format(
-            display(self.total_acquire),
-            display(self.total_dispose),
-            display(self.total_fee),
-            display(position.quantity), position.value_str
-        )
-
-
 class Positions:
     """
     A set of positions by traded pair
@@ -63,13 +41,4 @@ class Positions:
         for pair in pairs:
             subset.positions[pair] = self.positions[pair]
         return subset
-    
-    @classmethod
-    def headers_str(cls):
-        return '{:10} |{}'.format('', Position.headers_str())
-
-    def __str__(self):
-        return '\n'.join(
-                '{:10} |{}'.format(k, v)
-                for k,v in sorted_items(self.positions))
 

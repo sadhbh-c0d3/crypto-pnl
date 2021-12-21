@@ -17,10 +17,8 @@ import sys
 import os
 import glob
 
-from .aux import (
-    walk_trades, 
-    export_trades
-)
+from .console_walk import walk_trades
+from .csv_export import export_trades
 
 
 def get_paths(path):

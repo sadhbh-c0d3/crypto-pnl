@@ -35,6 +35,20 @@ GAIN_VALUE = 'gain'
 LINE_LENGTH = 110
 
 
+def get_asset_rank(symbol):
+    if symbol == 'EUR':
+        return 1
+    if symbol == 'USDT':
+         return 2
+    if symbol == 'BTC':
+         return 3
+    if symbol == 'BNB':
+         return 4
+    if symbol == 'BUSD':
+         return 5
+    return 1000
+
+
 def get_datetime(date):
     return datetime.strptime(date, DATE_FORMAT)
 
