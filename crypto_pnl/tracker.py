@@ -16,73 +16,45 @@ class Tracker:
         self.dispose_stack = []
         self.matched = []
         self.unpaid_fees = []
+        self.current_transaction_leg = None
         self.last_transaction_index = -1
 
-    def begin_transaction(self):
+    def begin(self, transaction):
         print('BEGIN:    {}'.format(self.symbol))
+        self.current_transaction_leg = transaction.legs[self.symbol]
+        self.current_transaction_leg.acquire_stack = self.acquire_stack[:]
+        self.current_transaction_leg.dispose_stack = self.dispose_stack[:]
         self.last_transaction_index = len(self.matched)
 
-    def end_transaction(self):
+    def commit(self):
         print('END:      {}'.format(self.symbol))
+        self.acquire_stack = self.current_transaction_leg.acquire_stack[:]
+        self.dispose_stack = self.current_transaction_leg.dispose_stack[:]
+        self.matched += self.current_transaction_leg.matched
+        self.unpaid_fees += self.current_transaction_leg.unpaid_fees
+        self.current_transaction_leg = None
 
     def acquire(self, asset):
         print(' ACQUIRE: {} {}'.format(asset.quantity, asset.symbol))
-        matched, remaining = self.match(asset, self.dispose_stack, SIGN_BUY)
-        self.matched.extend(matched)
+        matched, remaining = self.match(asset, self.current_transaction_leg.dispose_stack, SIGN_BUY)
+        self.current_transaction_leg.matched.extend(matched)
         if remaining:
-            self.acquire_stack.append(remaining)
+            self.current_transaction_leg.acquire_stack.append(remaining)
 
     def dispose(self, asset):
         print(' DISPOSE: {} {}'.format(asset.quantity, asset.symbol))
-        matched, remaining = self.match(asset, self.acquire_stack, SIGN_SELL)
-        self.matched.extend(matched)
+        matched, remaining = self.match(asset, self.current_transaction_leg.acquire_stack, SIGN_SELL)
+        self.current_transaction_leg.matched.extend(matched)
         if remaining:
-            self.dispose_stack.append(remaining)
+            self.current_transaction_leg.dispose_stack.append(remaining)
 
     def pay_fee(self, asset):
         print(' PAY FEE: {} {}'.format(asset.quantity, asset.symbol))
-        # NOTE Fee is different than dispose as dispose is our earning while fee
-        # is our cost. We have to do matching, because in order to pay fee we
-        # had to acquire asset for it, and now we need to remove quantity from
-        # that asset without creating gains. We don't need to track relationship
-        # between fees and transactions, because when we pay fee we remove
-        # quantity from acquired asset, and when we dispose of this asset the
-        # gain will only include earning on what we disposed minus cost of the
-        # asset with fee deducted.  Binance has Convert small amounts to BNB
-        # option, and if that is not taken into account, then fees in BNB
-        # currency may cause negative balance of BNB.  This is tracked by unpaid
-        # fees.
-        matched, remaining = self.match(asset, self.acquire_stack, 0)
-        self.matched.extend(matched)
+        matched, remaining = self.match(asset, self.current_transaction_leg.acquire_stack, 0)
+        self.current_transaction_leg.matched.extend(matched)
         if remaining:
             print('  UNPAID FEE: {} {}'.format(remaining.quantity, remaining.symbol))
-            self.unpaid_fees.append(remaining)
-
-    def list_stacks(self):
-        positions = []
-        for asset in self.acquire_stack:
-            position = Position(asset.symbol)
-            position.total_acquire = asset.quantity
-            positions.append(position)
-        for asset in self.dispose_stack:
-            position = Position(asset.symbol)
-            position.total_dispose = asset.quantity
-            positions.append(position)
-        return positions
-
-    def balance(self):
-        position = Position(self.symbol)
-        position.total_acquire = sum(asset.quantity for asset in self.acquire_stack)
-        position.total_dispose = sum(asset.quantity for asset in self.dispose_stack)
-        return position
-
-    def unpaid_fees_balance(self):
-        position = Position(self.symbol)
-        position.total_dispose = sum(asset.quantity for asset in self.unpaid_fees)
-        return position
-
-    def has_unpaid_fees(self):
-        return not not self.unpaid_fees
+            self.current_transaction_leg.unpaid_fees.append(remaining)
 
     def match(self, asset, stack, sign):
         matched = []
@@ -139,6 +111,32 @@ class Tracker:
         fee.set_value(total_fee_cost, FEE_VALUE)
         tracker.matched.append((buy, sell, fee))
         return tracker
+
+    def list_stacks(self):
+        positions = []
+        for asset in self.acquire_stack:
+            position = Position(asset.symbol)
+            position.total_acquire = asset.quantity
+            positions.append(position)
+        for asset in self.dispose_stack:
+            position = Position(asset.symbol)
+            position.total_dispose = asset.quantity
+            positions.append(position)
+        return positions
+
+    def balance(self):
+        position = Position(self.symbol)
+        position.total_acquire = sum(asset.quantity for asset in self.acquire_stack)
+        position.total_dispose = sum(asset.quantity for asset in self.dispose_stack)
+        return position
+
+    def unpaid_fees_balance(self):
+        position = Position(self.symbol)
+        position.total_dispose = sum(asset.quantity for asset in self.unpaid_fees)
+        return position
+
+    def has_unpaid_fees(self):
+        return not not self.unpaid_fees
 
 
 class Trackers:

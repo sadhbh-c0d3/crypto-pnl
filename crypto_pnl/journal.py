@@ -1,6 +1,7 @@
 from .core import *
 from .position import Positions
 from .tracker import Trackers
+from .transaction import Transaction
 
 
 class Journal:
@@ -10,6 +11,7 @@ class Journal:
         self.all = Positions()
         self.trackers = Trackers()
         self.wallet = wallet
+        self.transactions = []
     
     def execute(self, trade):
         """
@@ -35,46 +37,52 @@ class Journal:
 
         self.wallet.sub(trade.fee.symbol, trade.fee)
         
-        position_main = self.main.get(trade.pair, trade.amount.symbol)
-        position_traded = self.traded.get(trade.pair, trade.executed.symbol)
+        main_pair_position = self.main.get(trade.pair, trade.amount.symbol)
+        traded_pair_position = self.traded.get(trade.pair, trade.executed.symbol)
 
-        position_all_main = self.all.get(trade.amount.symbol, trade.amount.symbol)
-        position_all_traded = self.all.get(trade.executed.symbol, trade.executed.symbol)
-        position_all_fee = self.all.get(trade.fee.symbol, trade.fee.symbol)
+        main_total_position = self.all.get(trade.amount.symbol, trade.amount.symbol)
+        main_tracker = self.trackers.get(trade.amount.symbol, trade.amount.symbol)
 
-        tracker_main = self.trackers.get(trade.amount.symbol, trade.amount.symbol)
-        tracker_traded = self.trackers.get(trade.executed.symbol, trade.executed.symbol)
-        tracker_fee = self.trackers.get(trade.fee.symbol, trade.fee.symbol)
+        traded_total_position = self.all.get(trade.executed.symbol, trade.executed.symbol)
+        traded_tracker = self.trackers.get(trade.executed.symbol, trade.executed.symbol)
 
-        fee_in_pair = tracker_fee.symbol in [tracker_main.symbol, tracker_traded.symbol]
-        tracker_main.begin_transaction()
-        tracker_traded.begin_transaction()
-        if not fee_in_pair:
-            tracker_fee.begin_transaction()
+        fee_total_position = self.all.get(trade.fee.symbol, trade.fee.symbol)
+        fee_tracker = self.trackers.get(trade.fee.symbol, trade.fee.symbol)
 
-        if trade.side == SIGN_SELL:
-            position_main.acquire(trade.amount)
-            position_all_main.acquire(trade.amount)
-            tracker_main.acquire(trade.amount)
-        else:
-            position_traded.acquire(trade.executed)
-            position_all_traded.acquire(trade.executed)
-            tracker_traded.acquire(trade.executed)
+        transaction = Transaction(trade)
 
-        position_all_fee.pay_fee(trade.fee)
-        tracker_fee.pay_fee(trade.fee)
+        main_tracker.begin(transaction)
+        traded_tracker.begin(transaction)
+
+        if fee_tracker not in (main_tracker, traded_tracker):
+            fee_tracker.begin(transaction)
 
         if trade.side == SIGN_SELL:
-            position_traded.dispose(trade.executed)
-            position_all_traded.dispose(trade.executed)
-            tracker_traded.dispose(trade.executed)
+            main_pair_position.acquire(trade.amount)
+            main_total_position.acquire(trade.amount)
+            main_tracker.acquire(trade.amount)
         else:
-            position_main.dispose(trade.amount)
-            position_all_main.dispose(trade.amount)
-            tracker_main.dispose(trade.amount)
+            traded_pair_position.acquire(trade.executed)
+            traded_total_position.acquire(trade.executed)
+            traded_tracker.acquire(trade.executed)
 
-        tracker_main.end_transaction()
-        tracker_traded.end_transaction()
-        if not fee_in_pair:
-            tracker_fee.end_transaction()
+        fee_total_position.pay_fee(trade.fee)
+        fee_tracker.pay_fee(trade.fee)
+
+        if trade.side == SIGN_SELL:
+            traded_pair_position.dispose(trade.executed)
+            traded_total_position.dispose(trade.executed)
+            traded_tracker.dispose(trade.executed)
+        else:
+            main_pair_position.dispose(trade.amount)
+            main_total_position.dispose(trade.amount)
+            main_tracker.dispose(trade.amount)
+
+        main_tracker.commit()
+        traded_tracker.commit()
+
+        if fee_tracker not in (main_tracker, traded_tracker):
+            fee_tracker.commit()
+
+        self.transactions.append(transaction)
 
