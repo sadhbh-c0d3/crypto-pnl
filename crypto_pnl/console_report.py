@@ -19,14 +19,15 @@ class ConsoleReport:
         print '\n{}'.format(line_title('[ Trade #{:5}]'.format(index)))
         print RenderTrade.render_info(trade)
 
-        print '\n{}'.format(line_title('[ Total Account Balance ]'))
-        print '{} (ACCOUNT)'.format(RenderPositions.render_headers())
+        print '\n\n{}\n'.format(line_title('[ Total Account Balance ]'))
+        print RenderPositions.render_headers()
+        print line_trade_summary()
 
         summary_journal_all = Summary()
         summary_journal_all.calculate(journal.position_tracker.all)
         print render.positions.render(summary_journal_all.total)
 
-        print '\n{}'.format(line_title('[ Total Main/Traded Account Balance ]'))
+        print '\n{}\n'.format(line_section('[ Traded Pair Account Balance ]'))
         summary_journal_main = Summary()
         summary_journal_main.calculate(journal.position_tracker.main.get_subset([trade.pair]))
         print '{}   {}:Main'.format(
@@ -39,25 +40,29 @@ class ConsoleReport:
             render.positions.render(summary_journal_traded.total),
             trade.pair)
 
-        print '\n{}'.format(line_title('[ Individual Assets (fees deducted) ]'))
-        trackers = journal.last_transaction.trackers
-        print render.trackers.render_stacks(trackers)
+        print '\n\n{}\n'.format(line_title('[ Asset Portfolio ]'))
+        print RenderPositions.render_headers()
+        print line_trade_summary()
 
-        print '\n{}'.format(line_title('[ Asset Balance (post-trade) ]'))
+        trackers = journal.last_transaction.trackers
         print render.positions.render(trackers.balance())
 
         if trackers.has_unpaid_fees():
-            print '\n{}'.format(line_title('[ Unpaid Fees (post-trade) ]'))
+            print '\n{}\n'.format(line_section('[ Unpaid Fees ]'))
             print render.positions.render(trackers.unpaid_fees_balance())
 
-        print '\n{}'.format(line_title('[ Transaction Gains (matched individual assets) ]'))
+        print '\n{}\n'.format(line_section('[ Individual Assets ]'))
+        print render.trackers.render_stacks(trackers)
+
+        print '\n\n{}\n'.format(line_title('[ Transaction Gains ]'))
         print RenderTransaction.render_headers()
+        print line_trade_summary()
         print RenderTransaction.render_matches(journal.last_transaction)
 
-        print '\n{}'.format(line_title('[ Transaction Events ]'))
+        print '\n\n{}\n'.format(line_title('[ Transaction Events ]'))
         print render.trackers.render_events(trackers)
 
-        print
+        print '\n'*4
 
 
     def print_final_summary(self, journal):
