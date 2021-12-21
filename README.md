@@ -8,6 +8,34 @@ This simple program is trying to do calculations based off Binance Isolated Marg
 
 In order to use it correctly all other trades need to be converted into Isolated Margin Trading Data CSV file format.
 
+### Matching Tansactions
+The legal rules are described here [CGT share matching rules – a worked example](https://www.whitefieldtax.co.uk/cgt-share-matching-rules-worked-example/)
+
+A matching engine uses multi-leg transaction trackers to match disposals against acquisitions.
+
+A tracker remebers all acquisitions together with their prices in EUR estimated at the time of acquisition,
+and then disposal with price in EUR estimated at the time of disposal.
+
+Additionally tracker remembers the price in EUR of any fees at the time these fees arose. 
+
+The short selling is supported, and covers matching of disposals of borrowed assets against following acquisitions. The EUR prices are estimated at the time of disposal and acquisition as previously. The fees may be covered by borrowed assets, since often fees are on traded asset, which we borrowed to sell it.
+
+In all cases the gains are calculated only for matched transactions, and
+they are calculated as the value of disposal less the value of acquisition less fees of disposal less fees of acquisition.
+
+### Correctness
+We know that transaction trackers are giving same final result as position trackers, which are giving same results as wallet.
+
+Transaction trackers are very complex beings, which are used for transaction matching. Every time there is a match against held asset, that asset needs to be split and there is a portion of that asset that was matched and another portion that remains unmatched. This works symmetrically for short selling, but there is slight deviation system also must handle fees correctly, and fees are cost only, i.e. we should never see positive gain from fees, and only cost.
+
+Position trackers accumulate each two sums one of all acquired and another of all disposed quantity. 
+At the end we obtain summary and final position for each asset by calculating difference between total disposed quantity less total acquired quantity.
+
+Wallet is the simplest tool to see the final balance. It accumulates sum of all acquired and disposed quantity as one number per each asset.
+
+TODO
+ - unit tests
+
 ## Status
 UNDER DEVELOPMENT
 
