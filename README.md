@@ -28,3 +28,7 @@ There is lots of things to be done here:
 ```
     python -m crypto_pnl export your_data_folder
 ``` 
+
+### Screenshot
+
+![image](https://user-images.githubusercontent.com/80485211/146946307-bd7f9fad-78c1-49c5-acb2-11633f6198a5.png)
