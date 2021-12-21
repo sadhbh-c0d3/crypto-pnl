@@ -23,16 +23,6 @@ class Asset:
             self.value_data = convert(self.quantity, unit_value)
             other.set_value(convert(quantity, unit_value), self.value_type)
         return other
-    
-    @property
-    def value_str(self):
-        if self.has_value:
-            return '{:10}'.format(display_fiat(self.value_data))
-        else:
-            return '{:10}'.format('(n/a)'.center(10))
-
-    def __str__(self):
-        return '{:16} {:5}'.format( display(self.quantity), self.symbol)
 
 
 def zero_asset(symbol, value_type):

@@ -9,11 +9,11 @@ from .tracker import Trackers
 from .last_prices import LastPrices
 from .exchange_rate_calculator import ExchangeRateCalculator
 from .console_render import (
-    Wallet as RenderWallet,
-    Summary as RenderSummary,
-    Positions as RenderPositions,
-    Trackers as RenderTrackers,
-    Trade as RenderTrade,
+    RenderPositions,
+    RenderSummary,
+    RenderTrackers,
+    RenderTrade,
+    RenderWallet,
 )
 
 

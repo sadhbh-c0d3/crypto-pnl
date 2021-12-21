@@ -26,21 +26,21 @@ class Tracker:
         print('END:      {}'.format(self.symbol))
 
     def acquire(self, asset):
-        print(' ACQUIRE: {}'.format(asset))
+        print(' ACQUIRE: {} {}'.format(asset.quantity, asset.symbol))
         matched, remaining = self.match(asset, self.dispose_stack, SIGN_BUY)
         self.matched.extend(matched)
         if remaining:
             self.acquire_stack.append(remaining)
 
     def dispose(self, asset):
-        print(' DISPOSE: {}'.format(asset))
+        print(' DISPOSE: {} {}'.format(asset.quantity, asset.symbol))
         matched, remaining = self.match(asset, self.acquire_stack, SIGN_SELL)
         self.matched.extend(matched)
         if remaining:
             self.dispose_stack.append(remaining)
 
     def pay_fee(self, asset):
-        print(' PAY FEE: {}'.format(asset))
+        print(' PAY FEE: {} {}'.format(asset.quantity, asset.symbol))
         # NOTE Fee is different than dispose as dispose is our earning while fee
         # is our cost. We have to do matching, because in order to pay fee we
         # had to acquire asset for it, and now we need to remove quantity from
@@ -55,7 +55,7 @@ class Tracker:
         matched, remaining = self.match(asset, self.acquire_stack, 0)
         self.matched.extend(matched)
         if remaining:
-            print('  UNPAID FEE: {}'.format(remaining))
+            print('  UNPAID FEE: {} {}'.format(remaining.quantity, remaining.symbol))
             self.unpaid_fees.append(remaining)
 
     def list_stacks(self):
@@ -103,15 +103,17 @@ class Tracker:
                 (match, borrowed, zero_fee) if sign == SIGN_BUY else
                 (borrowed, zero_acquire, match))
             )
-            print('  MATCH:  {} ({} - {} = {} {})'.format(match,
+            print('  MATCH:  {} {} ({} - {} = {} {})'.format(
+                match.quantity, match.symbol,
                 display_fiat(sell.value_data),
                 display_fiat(buy.value_data),
                 display_fiat(sell.value_data - buy.value_data), FIAT_SYMBOL)
             )
             matched.append((buy, sell, fee))
         if remaining:
-            print('  CARRY:  {} ({} {})'.format(remaining,
-            display_fiat(remaining.value_data), FIAT_SYMBOL))
+            print('  CARRY:  {} {} ({} {})'.format(
+                remaining.quantity, remaining.symbol,
+                display_fiat(remaining.value_data), FIAT_SYMBOL))
         return matched, remaining
 
     def summary(self):
