@@ -45,6 +45,10 @@ STACK_CARRY_ACTION = 'stack';
 UNPAID_FEE_CARRY_ACTION = 'unpaid fee';
 PAID_FEE_CARRY_ACTION = 'repaid fee';
 
+ACQUIRE_ACTION = 'acquire';
+DISPOSE_ACTION = 'dispose';
+PAY_FEE_ACTION = 'pay fee';
+
 
 LINE_LENGTH = 110
 

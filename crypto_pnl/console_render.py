@@ -161,8 +161,8 @@ class RenderTracker:
     @classmethod
     def render_match(cls, tracker, match):
         buy, sell, fee = match
-        position = Asset(sell.quantity - buy.quantity - fee.quantity, tracker.symbol)
-        position.set_value(sell.value_data - buy.value_data, GAIN_VALUE)
+        position = Asset(sell.quantity - buy.quantity + fee.quantity, tracker.symbol)
+        position.set_value(sell.value_data - buy.value_data + fee.value_data, GAIN_VALUE)
         return '{:16} {:16} {:16} | {:10} {:10} {:10} '.format(
             display(buy.quantity),
             display(sell.quantity),

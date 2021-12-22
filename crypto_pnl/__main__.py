@@ -27,13 +27,51 @@ def get_paths(path):
     return trades_path, market_data_path
 
 
+def print_usage():
+    print('''Crypto PnL Calculator (c) 2021, Sonia Sadhbh Kolasinska
+
+usage: crypto_pnl <walk|export> <path>
+''')
+
+def print_commands():
+    print('''commands:
+    walk    Walk through transaction log printing for each transaction
+            the details of transaction, exchange rates, account balance,
+            transaction gains, and transaction match and carry actions.
+    
+    export  Export into CSV file a preprocessed transaction log, where
+            acquisitions are matched with disposals by matching engine
+            and valuated in EUR using exchange rates driven by market data.
+    ''')
+
+def print_help():
+    print_usage()
+    print_commands()
+
+def print_error(msg):
+    print_usage()
+    print('error: {}\n'.format(msg))
+    print_commands()
+
+
 def main():
-    cmd, path = sys.argv[1:]
-    paths = get_paths(path)
-    if cmd == 'walk':
-        walk_trades(*paths)
-    elif cmd == 'export':
-        export_trades(*paths)
+    args = sys.argv[1:]
+    if not args:
+        print_usage()
+        return
+
+    cmd = args[0]
+    if cmd in ('walk', 'export'):
+        path = args[1]
+        paths = get_paths(path)
+        if cmd == 'walk':
+            walk_trades(*paths)
+        elif cmd == 'export':
+            export_trades(*paths)
+    elif cmd in ('help','-h'):
+        print_help()
+    else:
+        print_error('Unknown command {}'.format(cmd))
 
 
 if __name__ == '__main__':
