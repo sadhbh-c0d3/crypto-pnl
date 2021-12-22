@@ -26,7 +26,8 @@ they are calculated as the value of disposal less the value of acquisition less 
 ### Correctness
 We know that transaction trackers are giving same final result as position trackers, which are giving same results as wallet.
 
-Transaction trackers are very complex beings, which are used for transaction matching. Every time there is a match against held asset, that asset needs to be split and there is a portion of that asset that was matched and another portion that remains unmatched. This works symmetrically for short selling, but there is slight deviation system also must handle fees correctly, and fees are cost only, i.e. we should never see positive gain from fees, and only cost.
+Transaction trackers are very complex beings, which are used for transaction matching. Every time there is a match against held asset, that asset needs to be split and there is a portion of that asset that was matched and another portion that remains unmatched. This works symmetrically for short selling.
+Note that fees are disposals, and the gain can arise when paying a delayed fee.
 
 Position trackers accumulate each two sums one of all acquired and another of all disposed quantity. 
 At the end we obtain summary and final position for each asset by calculating difference between total disposed quantity less total acquired quantity.
