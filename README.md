@@ -1,19 +1,19 @@
 # crypto-pnl
 Crypto Trading Realized PnL Calculation (in EUR)
 
-## Installation
+### Installation
 ```
 pip install crypto-pnl
 ```
 
-## Commands
+### Commands
 
-### Walk interactively through transactions
+#### Walk interactively through transactions
 ```
     crypto_pnl walk your_data_folder
 ```
 
-### Export as CSV with valuation per transaction in Fiat currency
+#### Export as CSV with valuation per transaction in Fiat currency
 ```
     crypto_pnl export-ledger your_data_folder > exported-ledger.csv
     crypto_pnl export-trades your_data_folder > exported-trades.csv
