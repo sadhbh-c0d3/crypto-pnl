@@ -31,7 +31,7 @@ def get_paths(path):
 def print_usage():
     print('''Crypto PnL Calculator (c) 2021, Sonia Sadhbh Kolasinska
 
-usage: crypto_pnl <walk|export> <path>
+usage: crypto_pnl <walk|export-trades|export-tracker-events|export-ledger> <path>
 ''')
 
 def print_commands():
