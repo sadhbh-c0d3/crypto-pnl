@@ -11,10 +11,10 @@ MONETARY_RE = re.compile('(?P<quantity>[0-9.]+)(?P<symbol>[A-Z]*)')
 
 ZERO_LEVEL = Decimal('0.0000000001')
 
-QUANTIZER_1 = Decimal('0.0000001')
+QUANTIZER_1 = Decimal('0.000001')
 QUANTIZER_2 = Decimal('0.001')
 
-FIAT_QUANTIZER = Decimal('0.00001')
+FIAT_QUANTIZER = Decimal('0.001')
 FIAT_SYMBOL = 'EUR'
 FIAT_EXCHANGE_SYMBOL = 'USDT'
 
@@ -130,11 +130,12 @@ def unconvert(quantity, rate):
 def display(quantity):
     if quantity is None:
         return Decimal(0)
-    if abs(quantity) < ZERO_LEVEL:
+    if abs(quantity) < QUANTIZER_1:
         return Decimal(0)
     if abs(quantity) < 1:
         return quantity.quantize(QUANTIZER_1)
-    return quantity.quantize(QUANTIZER_2)
+    else:
+        return quantity.quantize(QUANTIZER_2)
 
 
 def display_fiat(quantity):

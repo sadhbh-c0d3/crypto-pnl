@@ -61,7 +61,8 @@ class ConsoleReport:
         print line_trade_summary()
         print RenderTransaction.render_matches(journal.last_transaction)
 
-        print '\n\n{}\n'.format(line_title('[ Transaction Events ]'))
+        print '\n\n{}\n'.format(line_section('[ Individial Events ]'))
+        print RenderTrackers.render_event_headers()
         print render.trackers.render_events(trackers)
 
         print '\n'*4
@@ -93,17 +94,17 @@ class ConsoleReport:
         print '\n{}'.format(line_title('[ All Asset Balance ]'))
         print RenderPositions.render_headers()
         trackers_balance = journal.transaction_engine.trackers.balance()
-        trackers_unpaid_fees = journal.transaction_engine.trackers.unpaid_fees_balance()
         print render.positions.render(trackers_balance)
 
-        print '\n{}'.format(line_title('[ All Unpaid Fees ]'))
-        print render.positions.render(trackers_unpaid_fees)
-        summary_trackers = Summary()
-        summary_trackers.calculate(trackers_balance)
-        summary_trackers.calculate(trackers_unpaid_fees)
-
-        print '\n{}'.format(line_title('[ Remaining Asset Balance (after fees are paid) ]'))
-        print render.summary.render(summary_trackers)
+        if journal.transaction_engine.trackers.has_unpaid_fees():
+            trackers_unpaid_fees = journal.transaction_engine.trackers.unpaid_fees_balance()
+            print '\n{}'.format(line_title('[ All Unpaid Fees ]'))
+            print render.positions.render(trackers_unpaid_fees)
+            summary_trackers = Summary()
+            summary_trackers.calculate(trackers_balance)
+            summary_trackers.calculate(trackers_unpaid_fees)
+            print '\n{}'.format(line_title('[ Remaining Asset Balance (after fees are paid) ]'))
+            print render.summary.render(summary_trackers)
 
         print '\n{}'.format(line_title('[ Total Transaction Gains (summary of all individual matched assets) ]'))
         print RenderTrackers.render_headers()

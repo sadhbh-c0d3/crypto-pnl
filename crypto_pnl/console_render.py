@@ -181,9 +181,63 @@ class RenderTracker:
     def render_event(cls, tracker, e):
         etype, action, data = e
         if etype == MATCH_EVENT:
-            return '{:5} | {:5} | {:10} | {:16} {:16} {:16}'.format(action[2], action[3], action[1], *(display(x.quantity) for x in data))
+            buy, sell, fee = data
+            data = buy
+            if action in (BUY_MATCH_ACTION, SELL_MATCH_ACTION):
+                acquired_value = buy.value_data
+                disposed_value = sell.value_data
+            else:
+                acquired_value = buy.value_data
+                disposed_value = fee.value_data
+
+            gains = disposed_value - acquired_value
+
+            if action in (BUY_MATCH_ACTION, REPAY_FEE_MATCH_ACTION):
+                acquired_qty = data.quantity
+                disposed_qty = 0
+                #disposed_value = 0
+                changed_qty = data.quantity
+            else:
+                acquired_qty = 0
+                #acquired_value = 0
+                disposed_qty = data.quantity
+                changed_qty = -data.quantity
+
         elif etype == CARRY_EVENT:
-            return '{:5} | {:5} | {:10} | {:16}'.format(action[2], action[3], action[1], display(data.quantity))
+            if action in (STACK_CARRY_ACTION,):
+                acquired_qty = data.quantity
+                disposed_qty = 0
+                changed_qty = data.quantity
+                acquired_value = data.value_data
+                disposed_value = 0
+            else:
+                acquired_qty = 0
+                disposed_qty = data.quantity
+                changed_qty = -data.quantity
+                acquired_value = 0
+                disposed_value = data.value_data
+
+            gains = 0
+
+        return '{:8} {:5} {:5} | {:16} {:16} | {:10} {:10} {:10}'.format(
+            action[1], action[2], action[3],
+            acquired_qty,
+            disposed_qty,
+            acquired_value,
+            disposed_value,
+            gains)
+
+    @classmethod
+    def render_event_headers(cls):
+        return '{} |  {} {}|  {} {} {}'.format(
+            ' (ACTION)'.rjust(20),
+            ' (ACQUIRED)'.rjust(16),
+            ' (DISPOSED)'.rjust(16),
+            ' (COST)'.rjust(10),
+            ' (EARN)'.rjust(10),
+            ' (GAINS)'.rjust(10),
+        )
+
 
 
 class RenderTrackers:
@@ -193,6 +247,10 @@ class RenderTrackers:
     @classmethod
     def render_headers(cls):
         return '{:10} |{}'.format('', RenderTracker.render_headers())
+
+    @classmethod
+    def render_event_headers(cls):
+        return '{:10} |{}'.format('', RenderTracker.render_event_headers())
 
     @classmethod
     def render_matches(cls, trackers):
