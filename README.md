@@ -8,11 +8,11 @@ pip install crypto-pnl
 
 ### Usage
 
-Export as CSV transaction matches and report gains in EUR
+Export as CSV matches of acquisitions with disposals, and report gains in EUR
 ```
     crypto_pnl export-tracker-events your_data_folder > exported-tracker-events.csv
 ``` 
-Export as CSV adding EUR valuation per transaction based on market data
+Export as CSV by adding EUR value per transaction based on market data
 ```
     crypto_pnl export-ledger your_data_folder > exported-ledger.csv
     crypto_pnl export-trades your_data_folder > exported-trades.csv
