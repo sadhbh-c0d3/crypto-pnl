@@ -4,9 +4,10 @@ Crypto Trading Realized PnL Calculation (in EUR)
 ## Rationale
 Jurisdictions require calculation of the PnL and CGT based off that as per transation basis.
 
-This simple program is trying to do calculations based off Binance Isolated Margin Trading Data.
+This program performs gains calculations for Binance using Trade History and Transaction History.
 
-In order to use it correctly all other trades need to be converted into Isolated Margin Trading Data CSV file format.
+Works with Spot, Cross Margin, and Isolated Margin accounts.
+Handles all trades, including short-selling, interests, small assets conversion, and large OTC trades.
 
 **Please follow instructions below in section *Data Download* to learn about how to _correctly_ download data from Binance**
 
