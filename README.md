@@ -1,9 +1,6 @@
 # crypto-pnl
 Crypto Trading Realized PnL Calculation (in EUR)
 
-# Works Wonderful!
-It works very well with Binance trade history and transaction history.
-
 ## Rationale
 Jurisdictions require calculation of the PnL and CGT based off that as per transation basis.
 
