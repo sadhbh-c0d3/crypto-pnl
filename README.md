@@ -143,4 +143,4 @@ Make sure files are `.csv` and not zipped, and not `.xlsx`. Unpack any zipped fi
 
 ### Screenshot
 
-![Screenshot from 2022-03-19 19-17-56](https://user-images.githubusercontent.com/80485211/159135413-208effda-c08e-480d-b5eb-619cf9972c4c.png)
+![image](https://user-images.githubusercontent.com/80485211/159135476-0612a077-1773-4f5e-a20a-7434b1f00b53.png)
