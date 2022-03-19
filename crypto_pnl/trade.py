@@ -4,10 +4,7 @@ from .asset import *
 
 # And example of trade data 
 #
-# - exported trades from Binance Isolated Margin account
-#
-# NOTE Trades exported from Binance Spot account need to be manually converted into this format.
-# Additionally any other exported conversions need to be converted into this format.
+# - Trades exported from Binance Isolated Margin, Cross Margin, and Spot account
 #
 # Date(UTC),Pair,Side,Price,Executed,Amount,Fee
 # 2021-06-05 16:36:56,DOGEEUR,BUY,0.31031,500DOGE,155.15500000EUR,0.5DOGE
@@ -36,3 +33,11 @@ def load_trades(path):
         except Exception as err:
             print err, row
             raise
+
+
+def use_trade_streams(trade_streams):
+    combined_trades = combine_data_streams(trade_streams, use_reverse=True)
+    for which_stream, next_trade in combined_trades:
+        yield next_trade
+
+

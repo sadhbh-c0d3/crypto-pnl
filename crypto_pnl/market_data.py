@@ -1,28 +1,32 @@
 from .core import *
 from .asset import *
+import os
 
 # An example of market data
 #
-# - downloaded from https://www.CryptoDataDownload.com
-# - edited to get only first 7 columns
-# - and only some selected date range
+# - downloaded from Binance Market Data: https://www.binance.com/en/landing/data
+# - data format is described here: https://github.com/binance/binance-public-data
 #
-# unix,date,symbol,open,high,low,close
-# 1622851200000,2021-06-05 00:00:00,BNB/USDT,390.68,408.87,387.6,408
-# 1622854800000,2021-06-05 01:00:00,BNB/USDT,408,414.76,404.76,411.66
-# 1622858400000,2021-06-05 02:00:00,BNB/USDT,411.63,413.74,407.81,411.96
-# 1622862000000,2021-06-05 03:00:00,BNB/USDT,411.97,415.73,408.85,410.17
-# 1622865600000,2021-06-05 04:00:00,BNB/USDT,410.17,416,410.17,415.77
-# 1622869200000,2021-06-05 05:00:00,BNB/USDT,415.78,417.24,412.84,415.35
-# 1622872800000,2021-06-05 06:00:00,BNB/USDT,415.35,423.32,415.22,422.04
+# Headers look like this:
+#  open_timestamp, open_price, high_price, low_price, close_price, volume, close_timestamp, ...
+#
+# NOTE: There is no header row in market data files.
+#
+# Data looks like this:
+#  1622851200000,390.68000000,408.87000000,387.60000000,408.00000000,194592.68850000,1622854799999,77913286.76816900,128810,104749.99380000,41959412.36701900,0
+#  1622854800000,408.00000000,414.76000000,404.76000000,411.66000000,149213.25410000,1622858399999,61119124.08516800,85638,80303.78440000,32883076.55872100,0
+#  1622858400000,411.63000000,413.74000000,407.81000000,411.96000000,93883.26250000,1622861999999,38547160.91696800,41956,46960.26150000,19281907.03656700,0
+#
+
 
 class MarketData:
-    def __init__(self,
-            unix, date, symbol, open_price, high_price, low_price, close_price
+    def __init__(self, path, main,
+            unix, open_price, high_price, low_price, close_price, *_unused
         ):
+        self.symbol_traded = os.path.split(path)[1].split(main,1)[0]
+        self.symbol_main = main
         self.unix = unix
-        self.date = get_datetime(date)
-        (self.symbol_traded, self.symbol_main) = symbol.split('/')
+        self.date = get_datetime_from_timestamp(int(unix))
         self.open_price = parse_price(open_price)
         self.high_price = parse_price(high_price)
         self.low_price = parse_price(low_price)
@@ -30,19 +34,13 @@ class MarketData:
     
     @property
     def value(self):
-        return (
-            self.open_price + 
-            self.close_price + 
-            2 * (self.high_price + self.low_price)
-        ) / 6
-
+        return (2 * (self.open_price + self.close_price) + self.high_price + self.low_price) / 6
 
 def load_market_data(path):
     market_data_csv = load_csv(path)
-    header = next(market_data_csv)
     for row in market_data_csv:
         try:
-            yield MarketData(*row)
+            yield MarketData(path, FIAT_EXCHANGE_SYMBOL, *row)
         except Exception as err:
             print err, row
             raise
