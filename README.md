@@ -6,6 +6,20 @@ Crypto Trading Realized PnL Calculation (in EUR)
 pip install crypto-pnl
 ```
 
+## Commands
+
+### Walk interactively through transactions
+```
+    crypto_pnl walk your_data_folder
+```
+
+### Export as CSV with valuation per transaction in Fiat currency
+```
+    crypto_pnl export-ledger your_data_folder > exported-ledger.csv
+    crypto_pnl export-trades your_data_folder > exported-trades.csv
+    crypto_pnl export-tracker-events your_data_folder > exported-tracker-events.csv
+``` 
+
 ## Rationale
 Jurisdictions require calculation of the PnL and CGT based off that as per transation basis.
 
@@ -64,19 +78,6 @@ FUTURE WORK:
  - Direct API data sourcing
  - Perhaps parse blockchain to get all data required
 
-## Commands
-
-### Walk interactively through transactions
-```
-    crypto_pnl walk your_data_folder
-```
-
-### Export as CSV with valuation per transaction in Fiat currency
-```
-    crypto_pnl export-ledger your_data_folder > exported-ledger.csv
-    crypto_pnl export-trades your_data_folder > exported-trades.csv
-    crypto_pnl export-tracker-events your_data_folder > exported-tracker-events.csv
-``` 
 
 ## Data Download
 This is where you put your Binanace logs. It's easy, please follow these instructions.
