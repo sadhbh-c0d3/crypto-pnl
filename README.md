@@ -1,6 +1,11 @@
 # crypto-pnl
 Crypto Trading Realized PnL Calculation (in EUR)
 
+## Installation
+```
+pip install crypto-pnl
+```
+
 ## Rationale
 Jurisdictions require calculation of the PnL and CGT based off that as per transation basis.
 
@@ -62,14 +67,14 @@ FUTURE WORK:
 
 ### Walk interactively through transactions
 ```
-    python -m crypto_pnl walk your_data_folder
+    crypto_pnl walk your_data_folder
 ```
 
 ### Export as CSV with valuation per transaction in Fiat currency
 ```
-    python -m crypto_pnl export-ledger your_data_folder
-    python -m crypto_pnl export-trades your_data_folder
-    python -m crypto_pnl export-tracker-events your_data_folder
+    crypto_pnl export-ledger your_data_folder > exported-ledger.csv
+    crypto_pnl export-trades your_data_folder > exported-trades.csv
+    crypto_pnl export-tracker-events your_data_folder > exported-tracker-events.csv
 ``` 
 
 ## Data Download
