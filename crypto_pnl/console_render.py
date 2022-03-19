@@ -181,9 +181,9 @@ class RenderTracker:
     def render_event(cls, tracker, e):
         etype, action, data = e
         if etype == MATCH_EVENT:
-            return '{:10} | {:10} | {:16} {:16} {:16}'.format(etype, action, *(display(x.quantity) for x in data))
+            return '{:5} | {:5} | {:10} | {:16} {:16} {:16}'.format(action[2], action[3], action[1], *(display(x.quantity) for x in data))
         elif etype == CARRY_EVENT:
-            return '{:10} | {:10} | {:16}'.format(etype, action, display(data.quantity))
+            return '{:5} | {:5} | {:10} | {:16}'.format(action[2], action[3], action[1], display(data.quantity))
 
 
 class RenderTrackers:
