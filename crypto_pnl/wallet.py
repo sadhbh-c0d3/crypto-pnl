@@ -31,4 +31,7 @@ class Wallet:
         self.sub(trade.amount.symbol, trade.amount, trade.side)
         self.sub(trade.fee.symbol, trade.fee)
 
+    def process_ledger_entry(self, entry):
+        self.add(entry.change.symbol, entry.change)
+
 

@@ -38,6 +38,15 @@ class ExchangeRateCalculator:
         self._set_trade_assets_value(trade)
         self._set_last_trade(trade)
 
+    def will_process_ledger_entry(self, entry):
+        self.set_asset_value(entry.change)
+        if not entry.change.has_value:
+            raise ValueError('Please, download market data for {} on {} from {}'.format(
+                entry.change.symbol,
+                entry.date,
+                'https://www.binance.com/en/landing/data'))
+
+
     # private:
     
     def _set_last_trade(self, trade):

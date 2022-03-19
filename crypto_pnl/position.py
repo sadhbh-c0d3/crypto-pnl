@@ -1,5 +1,5 @@
 from .core import *
-from .asset import Asset
+from .asset import Asset, copy_asset
 
 
 class Position:
@@ -73,3 +73,14 @@ class PositionTracker:
         else:
             main_pair_position.dispose(trade.amount)
             main_total_position.dispose(trade.amount)
+
+    def process_ledger_entry(self, entry):
+        total_position = self.all.get(entry.change.symbol, entry.change.symbol)
+        if entry.change.quantity > 0:
+            total_position.acquire(entry.change)
+
+        elif entry.change.quantity < 0:
+            change = copy_asset(entry.change)
+            change.quantity = -change.quantity
+            change.value_data = -change.value_data
+            total_position.dispose(change)

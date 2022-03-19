@@ -24,6 +24,13 @@ class LedgerEntry:
         self.remark = remark
 
 
+def shoud_ignore_ledger_entry(entry):
+    return entry.account == 'Spot' and entry.operation in (
+        'Transaction Related',
+        'Buy',
+        'Sell',
+        'Fee')
+
 def load_ledger(path):
     ledger_csv = load_csv(path)
     header = next(ledger_csv)

@@ -1,5 +1,5 @@
 from .core import *
-from .asset import Asset, zero_asset
+from .asset import Asset, zero_asset, copy_asset
 from .position import Position, Positions
 from .tracker import Tracker, Trackers
 
@@ -14,8 +14,8 @@ class TransactionLeg:
 
 
 class Transaction:
-    def __init__(self, trade):
-        self.trade = trade
+    def __init__(self, entry):
+        self.entry = entry
         self.legs = []
 
     def get_leg(self, tracker):
@@ -68,6 +68,23 @@ class TransactionEngine:
             traded_leg.tracker.dispose(trade.executed)
         else:
             main_leg.tracker.dispose(trade.amount)
+
+        transaction.commit()
+        return transaction
+
+    def process_ledger_entry(self, entry):
+        transaction = Transaction(entry)
+
+        leg = self.get_transaction_leg(transaction, entry.change.symbol)
+
+        if entry.change.quantity > 0:
+            leg.tracker.acquire(entry.change)
+
+        elif entry.change.quantity < 0:
+            change = copy_asset(entry.change)
+            change.quantity = -change.quantity
+            change.value_data = -change.value_data
+            leg.tracker.dispose(change)
 
         transaction.commit()
         return transaction

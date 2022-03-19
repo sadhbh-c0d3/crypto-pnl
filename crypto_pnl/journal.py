@@ -35,3 +35,8 @@ class Journal:
         self.position_tracker.execute(trade)
         self.transactions.append(self.transaction_engine.execute(trade))
 
+    def process_ledger_entry(self, entry):
+        self.wallet.process_ledger_entry(entry)
+        self.position_tracker.process_ledger_entry(entry)
+        self.transactions.append(self.transaction_engine.process_ledger_entry(entry))
+

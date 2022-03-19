@@ -1,7 +1,7 @@
 from .core import *
 from .asset import Asset, zero_asset, copy_asset
 from .trade import load_trades, use_trade_streams
-from .ledger import load_ledger, use_ledger_streams
+from .ledger import load_ledger, use_ledger_streams, shoud_ignore_ledger_entry
 from .market_data import load_market_data
 from .wallet import Wallet
 from .journal import Journal
@@ -137,11 +137,7 @@ def render_trade(trade):
 
 
 def render_ledger_entry(entry):
-    if entry.account == 'Spot' and entry.operation in (
-        'Transaction Related',
-        'Buy',
-        'Sell',
-        'Fee'):
+    if shoud_ignore_ledger_entry(entry):
         entry_remark = 'Entry should be ignored as it duplicates an entry from trading log.' + entry.remark
     else:
         entry_remark = entry.remark
@@ -189,38 +185,19 @@ def export_tracker_events(trades_paths, ledger_paths, market_data_paths):
             trade.fee.set_id(xid)
             exchange_rate_calculator.will_execute(trade)
             journal.execute(trade)
-            for symbol, tracker in sorted_items(
-                    journal.last_transaction.trackers.trackers):
-                for te in tracker.events:
-                    print(','.join(map(str, (xid, trade.date) + render_tracker_event(te)
-                    )))
+
         else:
             ledger_number += 1
             xid = 'L/{}'.format(ledger_number)
-            if entry.account == 'Spot' and entry.operation in (
-                'Transaction Related',
-                'Buy',
-                'Sell',
-                'Fee'):
+            if shoud_ignore_ledger_entry(entry):
                 continue
-            exchange_rate_calculator.set_asset_value(entry.change)
-            if not entry.change.has_value:
-                raise ValueError('Please, download market data for {} on {} from {}'.format(
-                    entry.change.symbol,
-                    entry.date,
-                    'https://www.binance.com/en/landing/data'))
 
+            exchange_rate_calculator.will_process_ledger_entry(entry)
             entry.change.set_id(xid)
-            base_tracker = transaction_engine.get_tracker(entry.change.symbol)
-            tracker = base_tracker.branch()
-            if entry.change.quantity > 0:
-                tracker.acquire(entry.change)
-            elif entry.change.quantity < 0:
-                change = copy_asset(entry.change)
-                change.quantity = -change.quantity
-                change.value_data = -change.value_data
-                tracker.dispose(change)
-            base_tracker.merge(tracker)
+            journal.process_ledger_entry(entry)
+
+        for symbol, tracker in sorted_items(
+                journal.last_transaction.trackers.trackers):
             for te in tracker.events:
                 print(','.join(map(str, (xid, entry.date) + render_tracker_event(te)
                 )))
