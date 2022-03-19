@@ -14,7 +14,7 @@ ZERO_LEVEL = Decimal('0.0000000001')
 QUANTIZER_1 = Decimal('0.0000001')
 QUANTIZER_2 = Decimal('0.001')
 
-FIAT_QUANTIZER = Decimal('0.001')
+FIAT_QUANTIZER = Decimal('0.00001')
 FIAT_SYMBOL = 'EUR'
 FIAT_EXCHANGE_SYMBOL = 'USDT'
 
@@ -32,25 +32,28 @@ DISPOSE_VALUE = 'earn'
 FEE_VALUE = 'fee'
 GAIN_VALUE = 'gain'
 
-MATCH_EVENT = 'match'
-CARRY_EVENT = 'carry'
+MATCH_EVENT = 'Close Lot'
+CARRY_EVENT = 'Open Lot'
 
-BUY_MATCH_ACTION = 'buy';
-SELL_MATCH_ACTION = 'sell';
-PAY_FEE_MATCH_ACTION = 'pay fee';
-REPAY_FEE_MATCH_ACTION = 'repay fee';
+BUY_MATCH_ACTION = ('Acquire', 'Buy',  'Close', 'Short') # We went short earlier when we sold asset, so this buy covers that borrowing
+SELL_MATCH_ACTION = ('Dispose', 'Sell', 'Close', 'Long') # Sell assets that we own
+PAY_FEE_MATCH_ACTION = ('Dispose', 'Pay Fee', 'Close', 'Long') # We just pay fee with assets we own
+REPAY_FEE_MATCH_ACTION = ('Acquire', 'Cover Fee', 'Close', 'Short') # We went short earlier when we paid fee, so this buy covers that borrowing
 
-BORROW_CARRY_ACTION = 'borrow';
-STACK_CARRY_ACTION = 'stack';
-UNPAID_FEE_CARRY_ACTION = 'unpaid fee';
-PAID_FEE_CARRY_ACTION = 'repaid fee';
+STACK_CARRY_ACTION = ('Acquire', 'Buy', 'Open', 'Long') # Buy assets
+BORROW_CARRY_ACTION = ('Dispose', 'Sell', 'Open', 'Short') # Sell borrowed asset
+UNPAID_FEE_CARRY_ACTION = ('Dispose', 'Pay Fee', 'Open', 'Short') # Pay fee using borrowed asset
 
-ACQUIRE_ACTION = 'acquire';
-DISPOSE_ACTION = 'dispose';
-PAY_FEE_ACTION = 'pay fee';
+ACQUIRE_ACTION = 'Acquire'
+DISPOSE_ACTION = 'Dispose'
+PAY_FEE_ACTION = 'Pay Fee'
 
 
 LINE_LENGTH = 110
+
+
+def die(message):
+    raise ValueError(message)
 
 
 def get_asset_rank(symbol):
@@ -69,6 +72,10 @@ def get_asset_rank(symbol):
 
 def get_datetime(date):
     return datetime.strptime(date, DATE_FORMAT)
+
+
+def get_datetime_from_timestamp(timestamp):
+    return datetime.fromtimestamp(timestamp/1000.0)
 
 
 def parse_side(side):
@@ -95,7 +102,7 @@ def get_carry_action(action):
         BORROW_CARRY_ACTION if action == SELL_MATCH_ACTION else (
         STACK_CARRY_ACTION if action == BUY_MATCH_ACTION else (
         UNPAID_FEE_CARRY_ACTION if action == PAY_FEE_MATCH_ACTION else
-        PAID_FEE_CARRY_ACTION)))
+        die("It's impossible! Pay can only open short position and never long!"))))
 
 
 def get_main_value_type(sign):
@@ -168,12 +175,16 @@ def line_summary():
     return fit_line('','=')
 
 
-def combine_data_streams(data_streams):
+def combine_data_streams(data_streams, use_reverse=False, use_sort=False):
     def next_or_none(it):
         try:
             return next(it)
         except StopIteration:
             return None
+    if use_reverse:
+        data_streams = map(lambda s: reversed(list(s)), data_streams)
+    if use_sort:
+        data_streams = map(lambda s: sorted(list(s), key=lambda x: x.date), data_streams)
     iters = map(iter, data_streams)
     current = map(next_or_none, iters)
     while not all(x is None for x in current):

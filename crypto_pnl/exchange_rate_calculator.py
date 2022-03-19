@@ -4,6 +4,14 @@ from .core import *
 class ExchangeRateCalculator:
     """
     Track asset values based on last trade.
+
+    We exchange through stablecoin: USDT, and then to EUR.
+    The marketdata would be 5 minute klines, and is good for general conversion rate calculations,
+    however to see gains on frequent transactions, we need to use pricing from traded market, i.e.
+    Say we trade 1INCH/BTC, then for every single trade we have exact price in BTC what we pay (Buy)
+    or receive (Sell). It wouldn't be accurate to use 1INCH price from market data (5 minute klines),
+    so we price 1INCH as the amount we paid/received in BTC, and then we use BTC/USDT market data to
+    convert to USDT, and then we use EUR/USDT market data to convert to EUR.
     """
     def __init__(self, last_price_provider):
         self.last_price_provider = last_price_provider
@@ -16,10 +24,13 @@ class ExchangeRateCalculator:
         if symbol == FIAT_EXCHANGE_SYMBOL:
             return Decimal(1.0) / fiat_price
         symbol_price = self.last_price_provider.get_last_price(symbol, FIAT_EXCHANGE_SYMBOL)
-        return symbol_price / fiat_price
+        if symbol_price is not None:
+            return symbol_price / fiat_price
 
     def set_asset_value(self, asset):
         unit_value = self.last_prices.get(asset.symbol)
+        if not unit_value:
+            unit_value = self.get_exchange_rate(asset.symbol)
         if unit_value:
             asset.set_value(convert(asset.quantity, unit_value), CURRENT_VALUE)
     

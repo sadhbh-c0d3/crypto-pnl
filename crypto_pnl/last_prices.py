@@ -12,6 +12,8 @@ class LastPrices:
     
     def play_market_data_until(self, date):
         while True:
+            if self.market_data_next and date < self.market_data_next.date:
+                break
             try:
                 which_stream, self.market_data_next = next(self.market_data_iter)
                 if date < self.market_data_next.date:

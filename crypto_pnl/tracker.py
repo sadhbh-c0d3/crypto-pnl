@@ -1,5 +1,5 @@
 from .core import *
-from .asset import Asset, zero_asset
+from .asset import Asset, zero_asset, copy_asset
 from .position import Position, Positions
 
 
@@ -36,10 +36,11 @@ class Tracker:
         if self.unpaid_fees:
             matched, asset = self.match(asset, self.unpaid_fees, REPAY_FEE_MATCH_ACTION)
             self.matched.extend(matched)
-        matched, remaining = self.match(asset, self.dispose_stack, BUY_MATCH_ACTION)
-        self.matched.extend(matched)
-        if remaining:
-            self.acquire_stack.append(remaining)
+        if asset:
+            matched, remaining = self.match(asset, self.dispose_stack, BUY_MATCH_ACTION)
+            self.matched.extend(matched)
+            if remaining:
+                self.acquire_stack.append(remaining)
 
     def dispose(self, asset):
         matched, remaining = self.match(asset, self.acquire_stack, SELL_MATCH_ACTION)
@@ -57,12 +58,13 @@ class Tracker:
         matched = []
         zero_acquire = zero_asset(asset.symbol, ACQUIRE_VALUE)
         zero_fee = zero_asset(asset.symbol, FEE_VALUE)
-        remaining = Asset(asset.quantity, asset.symbol)
-        remaining.set_value(asset.value_data, asset.value_type)
+        remaining = copy_asset(asset)
         while stack and remaining:
             borrowed = stack[-1]
             if borrowed.quantity <= remaining.quantity:
                 match = remaining.split(borrowed.quantity)
+                if not remaining.quantity:
+                    remaining = None
                 stack.pop()
             else:
                 borrowed = borrowed.split(remaining.quantity)
@@ -73,10 +75,10 @@ class Tracker:
                 (borrowed, zero_acquire, match) if action == PAY_FEE_MATCH_ACTION else
                 (match, zero_acquire, borrowed)))
             )
-            matched.append((buy, sell, fee))
+            matched.append((copy_asset(buy), copy_asset(sell), copy_asset(fee)))
             self.events.append((MATCH_EVENT, action, matched[-1]))
         if remaining and (action != REPAY_FEE_MATCH_ACTION):
-            self.events.append((CARRY_EVENT, get_carry_action(action), remaining))
+            self.events.append((CARRY_EVENT, get_carry_action(action), copy_asset(remaining)))
         return matched, remaining
 
     def summary(self):
