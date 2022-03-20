@@ -10,6 +10,8 @@ class Tracker:
     Tracks asset disposals matching with acquisitions.
     Also matches acquisitions with loans.
     """
+    TRACKER_DIR=TRACKER_LIFO
+
     def __init__(self, symbol):
         self.symbol = symbol
         self.acquire_stack = []
@@ -60,12 +62,12 @@ class Tracker:
         zero_fee = zero_asset(asset.symbol, FEE_VALUE)
         remaining = copy_asset(asset)
         while stack and remaining:
-            borrowed = stack[-1]
+            borrowed = stack[self.TRACKER_DIR]
             if borrowed.quantity <= remaining.quantity:
                 match = remaining.split(borrowed.quantity)
                 if not remaining.quantity:
                     remaining = None
-                stack.pop()
+                stack.pop(self.TRACKER_DIR)
             else:
                 borrowed = borrowed.split(remaining.quantity)
                 match, remaining = remaining, None

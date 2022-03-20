@@ -7,7 +7,7 @@ from .wallet import Wallet
 from .journal import Journal
 from .position import Positions, PositionTracker
 from .transaction import TransactionEngine
-from .tracker import Trackers
+from .tracker import Trackers, Tracker
 from .last_prices import LastPrices
 from .exchange_rate_calculator import ExchangeRateCalculator
 from .console_report import ConsoleReport
@@ -154,7 +154,10 @@ def render_ledger_entry(entry):
 
 
 
-def export_tracker_events(trades_paths, ledger_paths, market_data_paths):
+def export_tracker_events(trades_paths, ledger_paths, market_data_paths, use_fifo = False):
+    if use_fifo:
+        Tracker.TRACKER_DIR = TRACKER_FIFO
+
     last_prices = LastPrices()
     exchange_rate_calculator = ExchangeRateCalculator(last_prices)
     wallet = Wallet()

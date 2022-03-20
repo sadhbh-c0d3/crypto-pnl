@@ -49,6 +49,9 @@ def print_commands():
             buys are matched against sells by matching engine
             and EUR gains are calculated using exchange rates driven by market data.
 
+    export-tracker-events-fifo
+            Same as export-tracker-events, but use FIFO matching instead of default LIFO.
+
     export-ledger
             Export into CSV file a preprocessed transactions log, where
             transactions are valuated in EUR using exchange rates driven by market data.
@@ -72,7 +75,9 @@ def main():
         return
 
     cmd = args[0]
-    if cmd in ('walk', 'export-trades', 'export-tracker-events', 'export-ledger'):
+    if cmd in ('walk', 'export-trades', 'export-ledger',
+            'export-tracker-events',
+            'export-tracker-events-fifo'):
         path = args[1]
         paths = get_paths(path)
         if cmd == 'walk':
@@ -81,6 +86,8 @@ def main():
             export_trades(*paths)
         elif cmd == 'export-tracker-events':
             export_tracker_events(*paths)
+        elif cmd == 'export-tracker-events-fifo':
+            export_tracker_events(*paths, use_fifo=True)
         elif cmd == 'export-ledger':
             export_ledger(*paths)
     elif cmd in ('help','-h'):
