@@ -38,6 +38,17 @@ Handles all trades, including short-selling, interests, small assets conversion,
 **Please follow instructions below in section *Data Download* to learn about how to _correctly_ download data from Binance**
 
 ## Matching Transactions & Gains Calculation
+### Gains Calculation
+The gains are calculated only for matched transactions, and they are calculated as:
+
+> The Value of Disposal - The Value of Acquisition
+
+1. *"The Value of"* is estimated using Maket Data that is matched against the disposal and acquisition transations.
+2. *"Acquisition"* is transaction in which we acquired an asset
+3. *"Disposal"* is:
+ - Any transaction in which we disposed an asset
+ - Any fee paid on acquisition and/or disposal
+
 ### Rules
 According to defaults often found in commercial tools in Ireland we use FIFO, but I haven't found any such confirmation in official Revenue documentation.
 [Revenue statement on taxation of cryptocurrencies](https://www.revenue.ie/en/companies-and-charities/financial-services/cryptocurrencies/index.aspx)
@@ -57,37 +68,28 @@ Additionally tracker remembers the price in EUR of any fees at the time these fe
 
 The short selling is supported, and covers matching of disposals of borrowed assets against following acquisitions. The EUR prices are estimated at the time of disposal and acquisition as previously. The fees may be covered by borrowed assets, since often fees are on traded asset, which we borrowed to sell it.
 
-### Gains Calculation
-In all cases the gains are calculated only for matched transactions, and they are calculated as:
-
-> The Value of Disposal - The Value of Acquisition
-
-1. *"The Value of"* is marked using Maket Data that is matched against the disposal and acquisition transations.
-2. *"Acquisition"* is transaction in which we acquired an asset
-3. *"Disposal"* is:
- - Any transaction in which we disposed an asset
- - Any fee paid on acquisition
- - Any fee paid on disposal
-
-In regular trading there is no gains on fees, but in case of short selling, the fee paid on disposal is borrowed together with the asset that is being disposed (sold short), and if the price goes down, then we acquire asset to repay the loan and to cover borrowed fee, and that produces gains.
-
-### Correctness
-We know that transaction trackers are giving same final result as position trackers, which are giving same results as wallet.
-
-Transaction trackers are very complex beings, which are used for transaction matching. Every time there is a match against held asset, that asset needs to be split and there is a portion of that asset that was matched and another portion that remains unmatched. This works symmetrically for short selling.
-Note that fees are disposals, and the gain can arise when paying a delayed fee.
-
-Position trackers accumulate each two sums one of all acquired and another of all disposed quantity. 
-At the end we obtain summary and final position for each asset by calculating difference between total disposed quantity less total acquired quantity.
-
-Wallet is the simplest tool to see the final balance. It accumulates sum of all acquired and disposed quantity as one number per each asset.
-
-Additionally exported data can be put into a pivot table, and summary can be compared with Account Statement *(Wallet --> Account Statement)*.
-I have worked with my trades, which included short selling on isolated and cross margin markets, as well as large OTC or small amount conversions.
-Before EOY I have closed all positions, and converted to EUR. The values in *Changed Quantity* for all assets sum up to zero, and for EUR they sum up to my EOY Account Balance.
-
-The pivot table will show summary of *Gains Value in EUR* and for assets the positions of which were closed it is same as *Sell value in EUR* - *Buy value in EUR*, however for assets the position of which wasn't closed that value will be different.
-
+### License & Disclaimer
+> MIT License
+> 
+> Copyright (c) 2021 Sadhbh Code
+> 
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+> 
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
+> 
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
 
 
 ## Status
