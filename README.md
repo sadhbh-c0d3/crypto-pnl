@@ -33,7 +33,7 @@ Jurisdictions require calculation of the PnL and CGT based off that as per trans
 This program performs gains calculations for Binance using Trade History and Transaction History.
 
 Works with Spot, Cross Margin, and Isolated Margin accounts.
-Handles all trades, including short-selling, interests, small assets conversion, and large OTC trades.
+Handles all trades, including short-selling, small assets conversion, and large OTC trades.
 
 **Please follow instructions below in section *Data Download* to learn about how to _correctly_ download data from Binance**
 
