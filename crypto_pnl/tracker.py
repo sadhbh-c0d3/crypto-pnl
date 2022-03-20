@@ -1,3 +1,25 @@
+# MIT License
+#
+# Copyright (c) 2021 Sadhbh Code
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 from .core import *
 from .asset import Asset, zero_asset, copy_asset
 from .position import Position, Positions
@@ -10,6 +32,8 @@ class Tracker:
     Tracks asset disposals matching with acquisitions.
     Also matches acquisitions with loans.
     """
+    TRACKER_DIR=TRACKER_LIFO
+
     def __init__(self, symbol):
         self.symbol = symbol
         self.acquire_stack = []
@@ -60,12 +84,12 @@ class Tracker:
         zero_fee = zero_asset(asset.symbol, FEE_VALUE)
         remaining = copy_asset(asset)
         while stack and remaining:
-            borrowed = stack[-1]
+            borrowed = stack[self.TRACKER_DIR]
             if borrowed.quantity <= remaining.quantity:
                 match = remaining.split(borrowed.quantity)
                 if not remaining.quantity:
                     remaining = None
-                stack.pop()
+                stack.pop(self.TRACKER_DIR)
             else:
                 borrowed = borrowed.split(remaining.quantity)
                 match, remaining = remaining, None

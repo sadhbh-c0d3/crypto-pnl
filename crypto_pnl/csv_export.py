@@ -1,3 +1,25 @@
+# MIT License
+#
+# Copyright (c) 2021 Sadhbh Code
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 from .core import *
 from .asset import Asset, zero_asset, copy_asset
 from .trade import load_trades, use_trade_streams
@@ -7,7 +29,7 @@ from .wallet import Wallet
 from .journal import Journal
 from .position import Positions, PositionTracker
 from .transaction import TransactionEngine
-from .tracker import Trackers
+from .tracker import Trackers, Tracker
 from .last_prices import LastPrices
 from .exchange_rate_calculator import ExchangeRateCalculator
 from .console_report import ConsoleReport
@@ -154,7 +176,10 @@ def render_ledger_entry(entry):
 
 
 
-def export_tracker_events(trades_paths, ledger_paths, market_data_paths):
+def export_tracker_events(trades_paths, ledger_paths, market_data_paths, use_fifo = False):
+    if use_fifo:
+        Tracker.TRACKER_DIR = TRACKER_FIFO
+
     last_prices = LastPrices()
     exchange_rate_calculator = ExchangeRateCalculator(last_prices)
     wallet = Wallet()

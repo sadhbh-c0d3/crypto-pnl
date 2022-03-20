@@ -8,10 +8,15 @@ pip install crypto-pnl
 
 ### Usage
 
-Export as CSV matches of acquisitions with disposals, and report gains in EUR
+Export as CSV matches of acquisitions with disposals (LIFO), and report gains in EUR
 ```
     crypto_pnl export-tracker-events your_data_folder > exported-tracker-events.csv
-``` 
+```
+or if you prefer FIFO
+```
+    crypto_pnl export-tracker-events-fifo your_data_folder > exported-tracker-events-fifo.csv
+```
+
 Export as CSV by adding EUR value per transaction based on market data
 ```
     crypto_pnl export-ledger your_data_folder > exported-ledger.csv
@@ -32,8 +37,14 @@ Handles all trades, including short-selling, interests, small assets conversion,
 
 **Please follow instructions below in section *Data Download* to learn about how to _correctly_ download data from Binance**
 
-### Matching Tansactions
-The legal rules are described here [CGT share matching rules – a worked example](https://www.whitefieldtax.co.uk/cgt-share-matching-rules-worked-example/)
+### Matching Transactions
+This tool uses LIFO or FIFO.
+
+According to defaults often found in commercial tools in Ireland we use FIFO, but I haven't found any such confirmation in official Revenue documentation.
+[Revenue statement on taxastion of cryptocurrencies](https://www.revenue.ie/en/companies-and-charities/financial-services/cryptocurrencies/index.aspx)
+
+The rules for UK are described here [CGT share matching rules – a worked example](https://www.whitefieldtax.co.uk/cgt-share-matching-rules-worked-example/)
+They can essetially be realized by LIFO, with the twist that for assets held longer than 30 days we would need to use average price instead. We don't support that yet.
 
 A matching engine uses multi-leg transaction trackers to match disposals against acquisitions.
 
@@ -71,9 +82,11 @@ The pivot table will show summary of *Gains Value in EUR* and for assets the pos
 COMPLETED:
  - Correct calculation of the gains in EUR
  - Export to CSV transactions and matched lots
+ - FIFO and LIFO matching rules
 
 TODO:
  - Unit tests
+ - UK matching rules
 
 FUTURE WORK:
  - Conversion from other CSV file formats
