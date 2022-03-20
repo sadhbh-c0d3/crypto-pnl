@@ -37,10 +37,10 @@ Handles all trades, including short-selling, interests, small assets conversion,
 
 **Please follow instructions below in section *Data Download* to learn about how to _correctly_ download data from Binance**
 
-### Matching Tansactions
+### Matching Transactions
 This tool uses LIFO or FIFO.
 
-According to defaults oftend found in commercial tools in Ireland we use FIFO, but I haven't found any such confirmation in official Revenue documentation.
+According to defaults often found in commercial tools in Ireland we use FIFO, but I haven't found any such confirmation in official Revenue documentation.
 [Revenue statement on taxastion of cryptocurrencies](https://www.revenue.ie/en/companies-and-charities/financial-services/cryptocurrencies/index.aspx)
 
 The rules for UK are described here [CGT share matching rules – a worked example](https://www.whitefieldtax.co.uk/cgt-share-matching-rules-worked-example/)
