@@ -37,15 +37,17 @@ Handles all trades, including short-selling, interests, small assets conversion,
 
 **Please follow instructions below in section *Data Download* to learn about how to _correctly_ download data from Binance**
 
-### Matching Transactions
-This tool uses LIFO or FIFO.
-
+## Matching Transactions & Gains Calculation
+### Rules
 According to defaults often found in commercial tools in Ireland we use FIFO, but I haven't found any such confirmation in official Revenue documentation.
-[Revenue statement on taxastion of cryptocurrencies](https://www.revenue.ie/en/companies-and-charities/financial-services/cryptocurrencies/index.aspx)
+[Revenue statement on taxation of cryptocurrencies](https://www.revenue.ie/en/companies-and-charities/financial-services/cryptocurrencies/index.aspx)
 
 The rules for UK are described here [CGT share matching rules – a worked example](https://www.whitefieldtax.co.uk/cgt-share-matching-rules-worked-example/)
 They can essetially be realized by LIFO, with the twist that for assets held longer than 30 days we would need to use average price instead. We don't support that yet.
 
+This tool supports both LIFO and FIFO.
+
+### Description
 A matching engine uses multi-leg transaction trackers to match disposals against acquisitions.
 
 A tracker remebers all acquisitions together with their prices in EUR estimated at the time of acquisition,
@@ -55,8 +57,19 @@ Additionally tracker remembers the price in EUR of any fees at the time these fe
 
 The short selling is supported, and covers matching of disposals of borrowed assets against following acquisitions. The EUR prices are estimated at the time of disposal and acquisition as previously. The fees may be covered by borrowed assets, since often fees are on traded asset, which we borrowed to sell it.
 
-In all cases the gains are calculated only for matched transactions, and
-they are calculated as the value of disposal less the value of acquisition less fees of disposal less fees of acquisition.
+### Gains Calculation
+In all cases the gains are calculated only for matched transactions, and they are calculated as:
+
+> The Value of Disposal - The Value of Acquisition
+
+1. *"The Value of"* is marked using Maket Data that is matched against the disposal and acquisition transations.
+2. *"Acquisition"* is transaction in which we acquired an asset
+3. *"Disposal"* is:
+ - Any transaction in which we disposed an asset
+ - Any fee paid on acquisition
+ - Any fee paid on disposal
+
+In regular trading there is no gains on fees, but in case of short selling, the fee paid on disposal is borrowed together with the asset that is being disposed (sold short), and if the price goes down, then we acquire asset to repay the loan and to cover borrowed fee, and that produces gains.
 
 ### Correctness
 We know that transaction trackers are giving same final result as position trackers, which are giving same results as wallet.
