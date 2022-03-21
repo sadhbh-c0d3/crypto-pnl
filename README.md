@@ -35,6 +35,8 @@ This program performs gains calculations for Binance using Trade History and Tra
 Works with Spot, Cross Margin, and Isolated Margin accounts.
 Handles all trades, including short-selling, small assets conversion, and large OTC trades.
 
+> The reason I started writing this tool was that other tools were unable to correctly match my transactions, which involved plenty of tiny trades including shortselling.
+
 **Please follow instructions below in section *Data Download* to learn about how to _correctly_ download data from Binance**
 
 ## Matching Transactions & Gains Calculation
