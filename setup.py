@@ -51,7 +51,7 @@ Topic :: Office/Business :: Financial :: Spreadsheet"""
 def main():
     setup(
         name="crypto_pnl",
-        version="0.3.0",
+        version="0.4.0",
         url="https://github.com/sadhbh-c0d3/crypto-pnl",
         author="Sonia Kolasinska",
         author_email="sonia.kolasinska.pro@gmail.com",
