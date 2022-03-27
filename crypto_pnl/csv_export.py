@@ -23,7 +23,7 @@
 from .core import *
 from .asset import Asset, zero_asset, copy_asset
 from .trade import load_trades, use_trade_streams
-from .ledger import load_ledger, use_ledger_streams, shoud_ignore_ledger_entry
+from .ledger import load_ledger, use_ledger_streams, shoud_ignore_ledger_entry, should_change_loan_balance
 from .market_data import load_market_data
 from .wallet import Wallet
 from .journal import Journal
@@ -38,12 +38,11 @@ from .console_report import ConsoleReport
 TRACKER_EVENT_HEADERS = (
     'ID',
     'Date',
-    'Event Symbol',
-    'Lot Action',
-    'Event Type',
-    'Event Action',
-    'Current Action',
-    'Current Side',
+    'Type',
+    'Event',
+    'Symbol',
+    'Action',
+    'Side',
     'Match ID',
     'Buy Quantity',
     'Sell Quantity',
@@ -129,14 +128,15 @@ def render_tracker_event(e):
         match_id = ''
         gains = 0
     
-    return (data.symbol, etype) + action + (
-        match_id,
-        '%.10f' % acquired_qty,
-        '%.10f' % disposed_qty,
-        '%.10f' % changed_qty,
-        '%.5f' % acquired_value,
-        '%.5f' % disposed_value,
-        '%.5f' % gains,
+    type_, event_, action_, side_ = action
+
+    return (type_, event_, data.symbol, action_, side_, match_id,
+        '%.7f' % acquired_qty,
+        '%.7f' % disposed_qty,
+        '%.7f' % changed_qty,
+        '%.7f' % acquired_value,
+        '%.7f' % disposed_value,
+        '%.7f' % gains,
     )
 
 
@@ -153,14 +153,16 @@ def render_trade(trade):
         trade.fee.symbol,
         trade.price,
         trade.amount.symbol,
-        '%.5f' % trade.exchange_rate,
-        '%.5f' % trade.amount.value_data,
+        '%.7f' % trade.exchange_rate,
+        '%.7f' % trade.amount.value_data,
     )
 
 
 def render_ledger_entry(entry):
     if shoud_ignore_ledger_entry(entry):
         entry_remark = 'Entry should be ignored as it duplicates an entry from trading log.' + entry.remark
+    elif should_change_loan_balance(entry):
+        entry_remark = 'Entry is used to calculate loan interests.' + entry.remark
     else:
         entry_remark = entry.remark
 
@@ -170,7 +172,7 @@ def render_ledger_entry(entry):
         entry.operation,
         entry.change.symbol,
         entry.change.quantity,
-        ('%.5f' % entry.change.value_data) if entry.change.has_value else '',
+        ('%.7f' % entry.change.value_data) if entry.change.has_value else '',
         entry_remark,
     )
 

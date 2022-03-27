@@ -53,6 +53,17 @@ def shoud_ignore_ledger_entry(entry):
         'Sell',
         'Fee')
 
+
+def should_change_loan_balance(entry):
+    return (
+        entry.account == 'IsolatedMargin' and entry.operation in (
+            'IsolatedMargin loan',
+            'IsolatedMargin repayment')
+        ) or (entry.account == 'CrossMargin' and entry.operation in (
+            'Margin loan',
+            'Margin Repayment'))
+
+
 def load_ledger(path):
     ledger_csv = load_csv(path)
     header = next(ledger_csv)

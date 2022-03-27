@@ -37,7 +37,7 @@ class Asset:
         return hasattr(self, 'xid')
 
     def set_value(self, value_data, value_type):
-        self.value_data = Decimal(value_data).quantize(FIAT_QUANTIZER)
+        self.value_data = Decimal(value_data).quantize(ZERO_LEVEL)
         self.value_type = value_type
 
     @property
@@ -50,7 +50,7 @@ class Asset:
         other = Asset(quantity, self.symbol)
         if self.has_value:
             unit_value = self.value_data / total_quantity
-            self.value_data = convert(self.quantity, unit_value).quantize(FIAT_QUANTIZER)
+            self.value_data = convert(self.quantity, unit_value).quantize(ZERO_LEVEL)
             other.set_value(convert(quantity, unit_value), self.value_type)
         if self.has_id:
             other.set_id(self.xid)

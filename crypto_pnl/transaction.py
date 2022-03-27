@@ -24,6 +24,7 @@ from .core import *
 from .asset import Asset, zero_asset, copy_asset
 from .position import Position, Positions
 from .tracker import Tracker, Trackers
+from .ledger import should_change_loan_balance
 
 
 class TransactionLeg:
@@ -99,7 +100,10 @@ class TransactionEngine:
 
         leg = self.get_transaction_leg(transaction, entry.change.symbol)
 
-        if entry.change.quantity > 0:
+        if should_change_loan_balance(entry):
+            leg.tracker.loan(entry.change)
+
+        elif entry.change.quantity > 0:
             leg.tracker.acquire(entry.change)
 
         elif entry.change.quantity < 0:

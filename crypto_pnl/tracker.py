@@ -38,6 +38,7 @@ class Tracker:
         self.symbol = symbol
         self.acquire_stack = []
         self.dispose_stack = []
+        self.loan_balance = Decimal('0.0')
         self.matched = []
         self.unpaid_fees = []
         self.events = []
@@ -47,12 +48,14 @@ class Tracker:
         tracker.acquire_stack = self.acquire_stack[:]
         tracker.dispose_stack = self.dispose_stack[:]
         tracker.unpaid_fees = self.unpaid_fees[:]
+        tracker.loan_balance = self.loan_balance
         return tracker
 
     def merge(self, tracker):
         self.acquire_stack = tracker.acquire_stack[:]
         self.dispose_stack = tracker.dispose_stack[:]
         self.unpaid_fees = tracker.unpaid_fees[:]
+        self.loan_balance = tracker.loan_balance
         self.matched += tracker.matched
         self.events += tracker.events
 
@@ -77,6 +80,17 @@ class Tracker:
         self.matched.extend(matched)
         if remaining:
             self.unpaid_fees.append(remaining)
+
+    def loan(self, asset):
+        loan_balance = self.loan_balance + asset.quantity
+        if (loan_balance < 0) and (asset.quantity < 0):
+            # repayment
+            released = asset.split(-loan_balance)
+            self.loan_balance = Decimal(0.0)
+            self.pay_fee(released)
+        else:
+            self.loan_balance = loan_balance
+
 
     def match(self, asset, stack, action):
         matched = []

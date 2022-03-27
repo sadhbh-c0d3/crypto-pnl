@@ -31,7 +31,7 @@ DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 INCH_RE = re.compile('(?P<quantity>[0-9.]+)1INCH')
 MONETARY_RE = re.compile('(?P<quantity>[0-9.]+)(?P<symbol>[A-Z]*)')
 
-ZERO_LEVEL = Decimal('0.0000000001')
+ZERO_LEVEL = Decimal('0.00000001')
 
 QUANTIZER_1 = Decimal('0.000001')
 QUANTIZER_2 = Decimal('0.001')
@@ -54,17 +54,17 @@ DISPOSE_VALUE = 'earn'
 FEE_VALUE = 'fee'
 GAIN_VALUE = 'gain'
 
-MATCH_EVENT = 'Close Lot'
-CARRY_EVENT = 'Open Lot'
+MATCH_EVENT = 'Close'
+CARRY_EVENT = 'Open'
 
 BUY_MATCH_ACTION = ('Acquire', 'Buy',  'Close', 'Short') # We went short earlier when we sold asset, so this buy covers that borrowing
 SELL_MATCH_ACTION = ('Dispose', 'Sell', 'Close', 'Long') # Sell assets that we own
-PAY_FEE_MATCH_ACTION = ('Dispose', 'Pay Fee', 'Close', 'Long') # We just pay fee with assets we own
-REPAY_FEE_MATCH_ACTION = ('Acquire', 'Cover Fee', 'Close', 'Short') # We went short earlier when we paid fee, so this buy covers that borrowing
+PAY_FEE_MATCH_ACTION = ('Dispose', 'Fee', 'Close', 'Long') # We just pay fee with assets we own
+REPAY_FEE_MATCH_ACTION = ('Acquire', 'Fee', 'Close', 'Short') # We went short earlier when we paid fee, so this buy covers that borrowing
 
 STACK_CARRY_ACTION = ('Acquire', 'Buy', 'Open', 'Long') # Buy assets
 BORROW_CARRY_ACTION = ('Dispose', 'Sell', 'Open', 'Short') # Sell borrowed asset
-UNPAID_FEE_CARRY_ACTION = ('Dispose', 'Pay Fee', 'Open', 'Short') # Pay fee using borrowed asset
+UNPAID_FEE_CARRY_ACTION = ('Dispose', 'Fee', 'Open', 'Short') # Pay fee using borrowed asset
 
 ACQUIRE_ACTION = 'Acquire'
 DISPOSE_ACTION = 'Dispose'
