@@ -221,7 +221,10 @@ def export_tracker_events(trades_paths, ledger_paths, market_data_paths, use_fif
 
             exchange_rate_calculator.will_process_ledger_entry(entry)
             entry.change.set_id(xid)
-            journal.process_ledger_entry(entry)
+            try:
+                journal.process_ledger_entry(entry)
+            except ValueError as err:
+                raise(ValueError('{} {}'.format(entry.date, err)))
 
         for symbol, tracker in sorted_items(
                 journal.last_transaction.trackers.trackers):

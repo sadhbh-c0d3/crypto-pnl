@@ -56,7 +56,7 @@ class MarketData:
     
     @property
     def value(self):
-        return (2 * (self.open_price + self.close_price) + self.high_price + self.low_price) / 6
+        return (self.open_price + self.close_price + self.high_price + self.low_price) / 4
 
 def load_market_data(path):
     market_data_csv = load_csv(path)

@@ -83,13 +83,30 @@ class Tracker:
 
     def loan(self, asset):
         loan_balance = self.loan_balance + asset.quantity
-        if (loan_balance < 0) and (asset.quantity < 0):
+        if (self.loan_balance > 0) and (loan_balance < 0):
             # repayment
             released = asset.split(-loan_balance)
             self.loan_balance = Decimal(0.0)
             self.pay_fee(released)
-        else:
+        elif (self.loan_balance >= 0) and (loan_balance >= 0):
+            # accumulated loan
+            # NOTE: We cannot be accumulating repayments, because when we cross
+            # zero we must release difference between the repayment and loan.
+            # In cases when loans were exteded and then repayed in multiple
+            # ledger entries, eventually we will cross 0, and at that point we
+            # will release difference.
             self.loan_balance = loan_balance
+        else:
+            # We know that reordering ledger is less than optimal, especially if
+            # loans are taken and repayed not instantly and not in full, but
+            # this problem is too complex to solve it automatically, and human
+            # input is necessary to avoid ambigouous situations. When loan entry
+            # appears followed by more than one repayment entries, as a rule of
+            # thumb make sure to put the biggest entry last. The released
+            # diference is the interests we paid, so needs to be deducted as any
+            # other fee (we call pay_fee() for that in the condition above).
+            raise ValueError('Please, reorder ledger entries around {} {:.7f} {:.7f} {:.7f}'.format(
+                asset.xid if asset.has_id else 'n/a', loan_balance, self.loan_balance, asset.quantity))
 
 
     def match(self, asset, stack, action):
