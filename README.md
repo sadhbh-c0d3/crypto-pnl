@@ -184,5 +184,8 @@ Place all those CSV files (Market Data) inside `~/mydata/market_data/`.
 Make sure files are `.csv` and not zipped, and not `.xlsx`. Unpack any zipped files, and convert any `.xlsx` files to `.csv`.
 
 ### Screenshot
+![crypto-pnl-trackers](https://user-images.githubusercontent.com/80485211/160294421-cc91ecbe-6dbc-40c9-be0c-feb0b2aab9ae.png)
+![crypto-pnl-trades](https://user-images.githubusercontent.com/80485211/160294424-7c439093-78a7-43cf-997e-109e97ad0935.png)
+![crypto-pnl-ledger](https://user-images.githubusercontent.com/80485211/160294426-b74eb94b-49b8-4fa1-b061-a86573dc1ccb.png)
 
 ![image](https://user-images.githubusercontent.com/80485211/159135476-0612a077-1773-4f5e-a20a-7434b1f00b53.png)
