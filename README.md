@@ -105,6 +105,9 @@ TODO:
  - Unit tests
  - UK matching rules
 
+BUGS:
+ - Everything is possible :)
+
 FUTURE WORK:
  - Conversion from other CSV file formats
  - Direct API data sourcing
