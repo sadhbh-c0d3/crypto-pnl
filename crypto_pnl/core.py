@@ -207,11 +207,11 @@ def combine_data_streams(data_streams, use_reverse=False, use_sort=False):
         except StopIteration:
             return None
     if use_reverse:
-        data_streams = map(lambda s: reversed(list(s)), data_streams)
+        data_streams = list(map(lambda s: reversed(list(s)), data_streams))
     if use_sort:
-        data_streams = map(lambda s: sorted(list(s), key=lambda x: x.date), data_streams)
-    iters = map(iter, data_streams)
-    current = map(next_or_none, iters)
+        data_streams = list(map(lambda s: sorted(list(s), key=lambda x: x.date), data_streams))
+    iters = list(map(iter, data_streams))
+    current = list(map(next_or_none, iters))
     while not all(x is None for x in current):
         next_i = None
         for (i, it) in enumerate(iters):

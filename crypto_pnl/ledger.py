@@ -71,7 +71,7 @@ def load_ledger(path):
         try:
             yield LedgerEntry(*row)
         except Exception as err:
-            print err, row
+            print(err, row)
             raise
 
 def use_ledger_streams(ledger_streams):

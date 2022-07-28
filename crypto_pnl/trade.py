@@ -53,7 +53,7 @@ def load_trades(path):
         try:
             yield Trade(*row)
         except Exception as err:
-            print err, row
+            print(err, row)
             raise
 
 

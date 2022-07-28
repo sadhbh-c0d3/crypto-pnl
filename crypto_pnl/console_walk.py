@@ -124,7 +124,7 @@ def walk_trades(trades_paths, ledger_paths, market_data_paths):
             journal.process_ledger_entry(entry)
 
 
-    print '(No more trades.)'
+    print('(No more trades.)')
     print('''
     Available commands:
         quit

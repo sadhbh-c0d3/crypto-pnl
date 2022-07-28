@@ -64,5 +64,5 @@ def load_market_data(path):
         try:
             yield MarketData(path, FIAT_EXCHANGE_SYMBOL, *row)
         except Exception as err:
-            print err, row
+            print(err, row)
             raise
