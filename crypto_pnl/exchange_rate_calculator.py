@@ -38,6 +38,7 @@ class ExchangeRateCalculator:
     def __init__(self, last_price_provider):
         self.last_price_provider = last_price_provider
         self.last_prices = {}
+        self.last_trade_date = {}
 
     def get_exchange_rate(self, symbol):
         if symbol == FIAT_SYMBOL:
@@ -50,8 +51,36 @@ class ExchangeRateCalculator:
             return symbol_price / fiat_price
 
     def set_asset_value(self, asset):
+        """
+            Set asset value based on the Last Trade if any,
+            otherwise set asset value from Last Market Data.
+
+            NOTE: Function always uses Last Trade if any, and 
+            does not check if Last Market Data is more recent than Last Trade.
+        """
         unit_value = self.last_prices.get(asset.symbol)
         if not unit_value:
+            unit_value = self.get_exchange_rate(asset.symbol)
+        if unit_value:
+            asset.set_value(convert(asset.quantity, unit_value), CURRENT_VALUE)
+    
+    def set_asset_value_check_stale(self, asset, date):
+        """
+            Set asset value based on the Last Trade
+            only if Last Trade happened AFTER Last Market Data,
+            otherwise always use Last Market Data.
+
+            NOTE: Last Market Data ticks are aggregated over 1M, 5M, etc,
+            so using Last Trade tick gives more accurate price in fast moving market,
+            however when there there is no trade on our side, the market will move
+            away from our last traded price, so we want to use new price from Last Market Data.
+        """
+        self.last_price_provider.play_market_data_until(date)
+        last_trade_date = self.last_trade_date.get(asset.symbol)
+        last_update_date = self.last_price_provider.get_last_update_date(asset.symbol, FIAT_EXCHANGE_SYMBOL)
+        if last_trade_date and (not last_update_date or (last_trade_date > last_update_date)):
+            unit_value = self.last_prices.get(asset.symbol)
+        else:
             unit_value = self.get_exchange_rate(asset.symbol)
         if unit_value:
             asset.set_value(convert(asset.quantity, unit_value), CURRENT_VALUE)
@@ -61,7 +90,7 @@ class ExchangeRateCalculator:
         self._set_last_trade(trade)
 
     def will_process_ledger_entry(self, entry):
-        self.set_asset_value(entry.change)
+        self.set_asset_value_check_stale(entry.change, entry.date)
         if not entry.change.has_value:
             raise ValueError('Please, download market data for {} on {} from {}'.format(
                 entry.change.symbol,
@@ -81,6 +110,8 @@ class ExchangeRateCalculator:
 
         self.last_prices[trade.amount.symbol] = main_unit_value
         self.last_prices[trade.executed.symbol] = traded_unit_value
+        self.last_trade_date[trade.amount.symbol] = trade.date 
+        self.last_trade_date[trade.executed.symbol] = trade.date
 
     def _set_trade_assets_value(self, trade):
         self.last_price_provider.play_market_data_until(trade.date)

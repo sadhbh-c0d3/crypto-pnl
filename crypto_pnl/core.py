@@ -30,8 +30,10 @@ DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 INCH_RE = re.compile('(?P<quantity>[0-9.]+)1INCH')
 MONETARY_RE = re.compile('(?P<quantity>[0-9.]+)(?P<symbol>[A-Z]*)')
-
-ZERO_LEVEL = Decimal('0.00000001')
+ 
+# Binance data comes with precision of 10 decimal places
+ZERO_LEVEL = Decimal('0.0000000001')
+ZERO_LEVEL_FORMAT = '%.10f'
 
 QUANTIZER_1 = Decimal('0.000001')
 QUANTIZER_2 = Decimal('0.001')
@@ -164,6 +166,10 @@ def display(quantity):
 
 def display_fiat(quantity):
     return quantity.quantize(FIAT_QUANTIZER)
+
+
+def format_quantity(quantity):
+    return ZERO_LEVEL_FORMAT % quantity
 
 
 def load_csv(path):

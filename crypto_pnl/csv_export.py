@@ -20,6 +20,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import sys
+
 from .core import *
 from .asset import Asset, zero_asset, copy_asset
 from .trade import load_trades, use_trade_streams
@@ -33,6 +35,7 @@ from .tracker import Trackers, Tracker
 from .last_prices import LastPrices
 from .exchange_rate_calculator import ExchangeRateCalculator
 from .console_report import ConsoleReport
+from itertools import chain
 
 
 TRACKER_EVENT_HEADERS = (
@@ -46,10 +49,15 @@ TRACKER_EVENT_HEADERS = (
     'Match ID',
     'Buy Quantity',
     'Sell Quantity',
+    'Buy Price in {}'.format(FIAT_SYMBOL),
+    'Sell Price in {}'.format(FIAT_SYMBOL),
+    'Buy Value in {}'.format(FIAT_SYMBOL),
+    'Sell Value in {}'.format(FIAT_SYMBOL),
+    'Gains Value in {}'.format(FIAT_SYMBOL),
     'Changed Quantity',
-    'Buy value in {}'.format(FIAT_SYMBOL),
-    'Sell value in {}'.format(FIAT_SYMBOL),
-    'Gains value in {}'.format(FIAT_SYMBOL),
+    'Balance',
+    'Num Lots') + tuple(
+        chain(*(('Lot {} ID'.format(i), 'Lot {} Quantity'.format(i)) for i in range(1,21)))
 )
 
 TRADE_HEADERS = (
@@ -66,6 +74,7 @@ TRADE_HEADERS = (
     'Price',
     'Price.Symbol',
     'Exchange Rate in {}'.format(FIAT_SYMBOL),
+    'Price in {}'.format(FIAT_SYMBOL),
     'Trade value in {}'.format(FIAT_SYMBOL),
 )
 
@@ -76,11 +85,13 @@ LEDGER_HEADERS = (
     'Operation',
     'Coin',
     'Change',
+    'Price in {}'.format(FIAT_SYMBOL),
     'Value in {}'.format(FIAT_SYMBOL),
     'Remark',
 )
 
-def render_tracker_event(e):
+
+def render_tracker_event(e, event_positions, event_lots):
     etype, action, data = e
     if etype == MATCH_EVENT:
         buy, sell, fee = data
@@ -90,11 +101,15 @@ def render_tracker_event(e):
             disposed_id = sell.xid
             acquired_value = buy.value_data
             disposed_value = sell.value_data
+            acquired_price = buy.value_data / buy.quantity
+            disposed_price = sell.value_data / sell.quantity
         else:
             acquired_id = buy.xid
             disposed_id = fee.xid
             acquired_value = buy.value_data
             disposed_value = fee.value_data
+            acquired_price = buy.value_data / buy.quantity if buy.quantity > 0 else 0
+            disposed_price = fee.value_data / fee.quantity if fee.quantity > 0 else 0
 
         gains = disposed_value - acquired_value
 
@@ -110,6 +125,7 @@ def render_tracker_event(e):
             disposed_qty = data.quantity
             changed_qty = -data.quantity
             match_id = acquired_id
+        event_lots[data.symbol][match_id] -= abs(changed_qty)
 
     elif etype == CARRY_EVENT:
         if action in (STACK_CARRY_ACTION,):
@@ -117,26 +133,50 @@ def render_tracker_event(e):
             disposed_qty = 0
             changed_qty = data.quantity
             acquired_value = data.value_data
+            acquired_price = data.value_data / data.quantity
             disposed_value = 0
+            disposed_price = 0
         else:
             acquired_qty = 0
             disposed_qty = data.quantity
             changed_qty = -data.quantity
             acquired_value = 0
+            acquired_price = 0
             disposed_value = data.value_data
+            disposed_price = data.value_data / data.quantity
+        event_lots.setdefault(data.symbol, {})[data.xid] = abs(changed_qty)
 
         match_id = ''
         gains = 0
     
+    position_qty = event_positions.get(data.symbol, Decimal(0))
+    position_qty = position_qty + changed_qty
+    event_positions[data.symbol] = position_qty
+    lots_remaining = [(xid, qty) for xid, qty in event_lots[data.symbol].items() if qty > ZERO_LEVEL]
+
+    acquired_price = format_quantity(acquired_price) if acquired_price > 0 else ''
+    disposed_price = format_quantity(disposed_price) if disposed_price > 0 else ''
+
+    acquired_value = format_quantity(acquired_value) if acquired_qty > 0 else ''
+    disposed_value = format_quantity(disposed_value) if disposed_qty > 0 else ''
+
+    acquired_qty = format_quantity(acquired_qty) if acquired_qty > 0 else ''
+    disposed_qty = format_quantity(disposed_qty) if disposed_qty > 0 else ''
+
     type_, event_, action_, side_ = action
 
     return (type_, event_, data.symbol, action_, side_, match_id,
-        '%.7f' % acquired_qty,
-        '%.7f' % disposed_qty,
-        '%.7f' % changed_qty,
-        '%.7f' % acquired_value,
-        '%.7f' % disposed_value,
-        '%.7f' % gains,
+        acquired_qty,
+        disposed_qty,
+        acquired_price,
+        disposed_price,
+        acquired_value,
+        disposed_value,
+        format_quantity(gains),
+        format_quantity(changed_qty),
+        format_quantity(position_qty),
+        '%i' % len(lots_remaining),
+        ','.join('{},{}'.format(xid, format_quantity(qty)) for xid, qty in lots_remaining),
     )
 
 
@@ -153,26 +193,40 @@ def render_trade(trade):
         trade.fee.symbol,
         trade.price,
         trade.amount.symbol,
-        '%.7f' % trade.exchange_rate,
-        '%.7f' % trade.amount.value_data,
+        format_quantity(trade.exchange_rate),
+        format_quantity(trade.exchange_rate * trade.price),
+        format_quantity(trade.amount.value_data),
     )
 
 
 def render_ledger_entry(entry):
+    ignore = False
     if shoud_ignore_ledger_entry(entry):
+        ignore = True
         entry_remark = 'Entry should be ignored as it duplicates an entry from trading log.' + entry.remark
     elif should_change_loan_balance(entry):
         entry_remark = 'Entry is used to calculate loan interests.' + entry.remark
     else:
         entry_remark = entry.remark
 
+    if ignore:
+        entry_change_value = ''
+        entry_change_price = ''
+    elif not entry.change.has_value:
+        entry_change_value = ''
+        entry_change_price = '<MISSING>'
+    else:
+        entry_change_value = format_quantity(entry.change.value_data)
+        entry_change_price = format_quantity(entry.change.value_data / entry.change.quantity)
+
     return (
         entry.date,
         entry.account,
         entry.operation,
         entry.change.symbol,
-        entry.change.quantity,
-        ('%.7f' % entry.change.value_data) if entry.change.has_value else '',
+        format_quantity(entry.change.quantity),
+        entry_change_price,
+        entry_change_value,
         entry_remark,
     )
 
@@ -202,6 +256,8 @@ def export_tracker_events(trades_paths, ledger_paths, market_data_paths, use_fif
 
     number = 0
     ledger_number = 0
+    event_positions = {}
+    event_lots = {}
     for which, entry in combine_data_streams([trades, ledgers]):
         if not which:
             number += 1
@@ -229,7 +285,7 @@ def export_tracker_events(trades_paths, ledger_paths, market_data_paths, use_fif
         for symbol, tracker in sorted_items(
                 journal.last_transaction.trackers.trackers):
             for te in tracker.events:
-                print(','.join(map(str, (xid, entry.date) + render_tracker_event(te)
+                print(','.join(map(str, (xid, entry.date) + render_tracker_event(te, event_positions, event_lots)
                 )))
 
 
@@ -284,5 +340,6 @@ def export_ledger(trades_paths, ledger_paths, market_data_paths):
         else:
             ledger_number += 1
             xid = 'L/{}'.format(ledger_number)
-            exchange_rate_calculator.set_asset_value(entry.change)
+            if not shoud_ignore_ledger_entry(entry):
+                exchange_rate_calculator.will_process_ledger_entry(entry)
             print(','.join(map(str, (xid,) + render_ledger_entry(entry))))
