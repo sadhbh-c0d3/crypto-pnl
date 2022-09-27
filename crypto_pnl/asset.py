@@ -37,6 +37,9 @@ class Asset:
         return hasattr(self, 'xid')
 
     def set_value(self, value_data, value_type):
+        """
+            Set the value of an asset in default fiat currency.
+        """
         self.value_data = Decimal(value_data).quantize(ZERO_LEVEL)
         self.value_type = value_type
 
@@ -44,14 +47,30 @@ class Asset:
     def has_value(self):
         return hasattr(self, 'value_data')
     
+    def set_unit_value(self, unit_value):
+        """
+            Unit value can be attached to an asset separately from asset value.
+            This can be useful when dealing with price precision and tiny quantites.
+        """
+        self.unit_value = unit_value
+
+    @property
+    def has_unit_value(self):
+        return hasattr(self, 'unit_value')
+
     def split(self, quantity):
         total_quantity = self.quantity
         self.quantity = (self.quantity - quantity).quantize(ZERO_LEVEL)
         other = Asset(quantity, self.symbol)
         if self.has_value:
-            unit_value = self.value_data / total_quantity
+            if self.has_unit_value:
+                unit_value = self.unit_value
+            else:
+                unit_value = self.value_data / total_quantity
             self.value_data = convert(self.quantity, unit_value).quantize(ZERO_LEVEL)
             other.set_value(convert(quantity, unit_value), self.value_type)
+            if self.has_unit_value:
+                other.set_unit_value(unit_value)
         if self.has_id:
             other.set_id(self.xid)
         return other
@@ -60,6 +79,7 @@ class Asset:
 def zero_asset(symbol, value_type):
     asset = Asset(0, symbol)
     asset.set_value(0, value_type)
+    asset.set_unit_value(0)
     asset.set_id(0)
     return asset
 
@@ -68,9 +88,17 @@ def copy_asset(asset):
     copy = Asset(asset.quantity, asset.symbol)
     if asset.has_value:
         copy.set_value(asset.value_data, asset.value_type)
+    if asset.has_unit_value:
+        copy.set_unit_value(asset.unit_value)
     if asset.has_id:
         copy.set_id(asset.xid)
     return copy
+
+
+def get_price(asset):
+    return (asset.unit_value if asset.has_unit_value
+        else (asset.value_data / asset.quantity if asset.quantity > ZERO_LEVEL
+            else 0))
 
 
 def parse_price(price):

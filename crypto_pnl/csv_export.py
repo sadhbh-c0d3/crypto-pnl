@@ -23,7 +23,7 @@
 import sys
 
 from .core import *
-from .asset import Asset, zero_asset, copy_asset
+from .asset import Asset, zero_asset, copy_asset, get_price
 from .trade import load_trades, use_trade_streams
 from .ledger import load_ledger, use_ledger_streams, shoud_ignore_ledger_entry, should_change_loan_balance
 from .market_data import load_market_data
@@ -41,6 +41,7 @@ from itertools import chain
 TRACKER_EVENT_HEADERS = (
     'ID',
     'Date',
+    'Tax Period',
     'Type',
     'Event',
     'Symbol',
@@ -63,6 +64,7 @@ TRACKER_EVENT_HEADERS = (
 TRADE_HEADERS = (
     'ID',
     'Date',
+    'Tax Period',
     'Traded Pair',
     'Side',
     'Main Quantity',
@@ -81,6 +83,7 @@ TRADE_HEADERS = (
 LEDGER_HEADERS = (
     'ID',
     'Date',
+    'Tax Period',
     'Account',
     'Operation',
     'Coin',
@@ -89,6 +92,10 @@ LEDGER_HEADERS = (
     'Value in {}'.format(FIAT_SYMBOL),
     'Remark',
 )
+
+
+def tax_period(date):
+    return 'Second' if date.month == 12 else 'First'
 
 
 def render_tracker_event(e, event_positions, event_lots):
@@ -101,15 +108,15 @@ def render_tracker_event(e, event_positions, event_lots):
             disposed_id = sell.xid
             acquired_value = buy.value_data
             disposed_value = sell.value_data
-            acquired_price = buy.value_data / buy.quantity
-            disposed_price = sell.value_data / sell.quantity
+            acquired_price = get_price(buy)
+            disposed_price = get_price(sell)
         else:
             acquired_id = buy.xid
             disposed_id = fee.xid
             acquired_value = buy.value_data
             disposed_value = fee.value_data
-            acquired_price = buy.value_data / buy.quantity if buy.quantity > 0 else 0
-            disposed_price = fee.value_data / fee.quantity if fee.quantity > 0 else 0
+            acquired_price = get_price(buy)
+            disposed_price = get_price(fee)
 
         gains = disposed_value - acquired_value
 
@@ -133,7 +140,7 @@ def render_tracker_event(e, event_positions, event_lots):
             disposed_qty = 0
             changed_qty = data.quantity
             acquired_value = data.value_data
-            acquired_price = data.value_data / data.quantity
+            acquired_price = get_price(data)
             disposed_value = 0
             disposed_price = 0
         else:
@@ -143,7 +150,7 @@ def render_tracker_event(e, event_positions, event_lots):
             acquired_value = 0
             acquired_price = 0
             disposed_value = data.value_data
-            disposed_price = data.value_data / data.quantity
+            disposed_price = get_price(data)
         event_lots.setdefault(data.symbol, {})[data.xid] = abs(changed_qty)
 
         match_id = ''
@@ -183,6 +190,7 @@ def render_tracker_event(e, event_positions, event_lots):
 def render_trade(trade):
     return (
         trade.date,
+        tax_period(trade.date),
         trade.pair,
         get_side(trade.side),
         trade.amount.quantity,
@@ -217,10 +225,12 @@ def render_ledger_entry(entry):
         entry_change_price = '<MISSING>'
     else:
         entry_change_value = format_quantity(entry.change.value_data)
-        entry_change_price = format_quantity(entry.change.value_data / entry.change.quantity)
+        #entry_change_price = format_quantity(entry.change.value_data / entry.change.quantity)
+        entry_change_price = format_quantity(entry.change.unit_value)
 
     return (
         entry.date,
+        tax_period(entry.date),
         entry.account,
         entry.operation,
         entry.change.symbol,
@@ -285,7 +295,9 @@ def export_tracker_events(trades_paths, ledger_paths, market_data_paths, use_fif
         for symbol, tracker in sorted_items(
                 journal.last_transaction.trackers.trackers):
             for te in tracker.events:
-                print(','.join(map(str, (xid, entry.date) + render_tracker_event(te, event_positions, event_lots)
+                print(','.join(
+                    map(str, (xid, entry.date, tax_period(entry.date)
+                    ) + render_tracker_event(te, event_positions, event_lots)
                 )))
 
 

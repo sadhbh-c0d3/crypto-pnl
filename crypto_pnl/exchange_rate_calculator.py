@@ -63,6 +63,7 @@ class ExchangeRateCalculator:
             unit_value = self.get_exchange_rate(asset.symbol)
         if unit_value:
             asset.set_value(convert(asset.quantity, unit_value), CURRENT_VALUE)
+            asset.set_unit_value(unit_value)
     
     def set_asset_value_check_stale(self, asset, date):
         """
@@ -78,12 +79,13 @@ class ExchangeRateCalculator:
         self.last_price_provider.play_market_data_until(date)
         last_trade_date = self.last_trade_date.get(asset.symbol)
         last_update_date = self.last_price_provider.get_last_update_date(asset.symbol, FIAT_EXCHANGE_SYMBOL)
-        if last_trade_date and (not last_update_date or (last_trade_date > last_update_date)):
+        if last_trade_date and (not last_update_date or not (last_trade_date < last_update_date)):
             unit_value = self.last_prices.get(asset.symbol)
         else:
             unit_value = self.get_exchange_rate(asset.symbol)
         if unit_value:
             asset.set_value(convert(asset.quantity, unit_value), CURRENT_VALUE)
+            asset.set_unit_value(unit_value)
     
     def will_execute(self, trade):
         self._set_trade_assets_value(trade)
