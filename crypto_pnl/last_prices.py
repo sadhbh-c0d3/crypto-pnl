@@ -53,7 +53,7 @@ class LastPrices:
         if last_market_data:
             return last_market_data.value
 
-    def get_last_update_date(self,traded_symbol, main_symbol):
+    def get_last_update_date(self, traded_symbol, main_symbol):
         last_market_data = self._last_market_data.get((traded_symbol, main_symbol))
         if last_market_data:
             return last_market_data.date

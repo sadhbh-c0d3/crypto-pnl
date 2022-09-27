@@ -93,6 +93,20 @@ LEDGER_HEADERS = (
     'Remark',
 )
 
+PRICES_HEADERS = (
+    'ID',
+    'Date',
+    'Tax Period',
+    'Type',
+    'Market',
+    'Price',
+    'Tick',
+    'Open',
+    'High',
+    'Low',
+    'Close',
+)
+
 
 def tax_period(date):
     return 'Second' if date.month == 12 else 'First'
@@ -355,3 +369,94 @@ def export_ledger(trades_paths, ledger_paths, market_data_paths):
             if not shoud_ignore_ledger_entry(entry):
                 exchange_rate_calculator.will_process_ledger_entry(entry)
             print(','.join(map(str, (xid,) + render_ledger_entry(entry))))
+
+
+class LastPricesLogger(LastPrices):
+    def reset_last_accesssed(self):
+        self.last_accessed_symbols = set()
+    
+    def get_last_price(self, traded_symbol, main_symbol):
+        self.last_accessed_symbols.add((traded_symbol, main_symbol))
+        return super().get_last_price(traded_symbol, main_symbol)
+
+    def get_last_update_date(self, traded_symbol, main_symbol):
+        self.last_accessed_symbols.add((traded_symbol, main_symbol))
+        return super().get_last_update_date(traded_symbol, main_symbol)
+
+
+def export_prices(trades_paths, ledger_paths, market_data_paths):
+    last_prices = LastPricesLogger()
+    exchange_rate_calculator = ExchangeRateCalculator(last_prices)
+    wallet = Wallet()
+    position_tracker = PositionTracker()
+    transaction_engine = TransactionEngine()
+    journal = Journal(wallet, position_tracker, transaction_engine)
+
+    last_prices.set_market_data_streams(
+        map(load_market_data, market_data_paths))
+
+    ledgers = use_ledger_streams(
+        map(load_ledger, ledger_paths))
+
+    trades = use_trade_streams(
+        map(load_trades, trades_paths))
+
+    print(','.join(PRICES_HEADERS))
+
+    number = 0
+    ledger_number = 0
+    for which, entry in combine_data_streams([trades, ledgers]):
+        last_prices.reset_last_accesssed()
+        entry_symbols = set()
+
+        if not which:
+            number += 1
+            xid = 'T/{}'.format(number)
+            exchange_rate_calculator.will_execute(entry)
+            entry_symbols.add(entry.executed.symbol)
+            entry_symbols.add(entry.amount.symbol)
+            entry_symbols.add(entry.fee.symbol)
+            dohlc = ('',) * 5
+            market = '{}/{}'.format(entry.executed.symbol, entry.amount.symbol)
+            print(','.join(map(str, (
+                xid, entry.date, tax_period(entry.date), 
+                'Trade', market, entry.price) + dohlc)))
+
+        else:
+            ledger_number += 1
+            xid = 'L/{}'.format(ledger_number)
+            if shoud_ignore_ledger_entry(entry):
+                continue
+            exchange_rate_calculator.will_process_ledger_entry(entry)
+            entry_symbols.add(entry.change.symbol)
+        
+        if FIAT_SYMBOL in entry_symbols:
+            entry_symbols.remove(FIAT_SYMBOL)
+        
+        for symbol in entry_symbols:
+            market = '{}/{}'.format(symbol, FIAT_SYMBOL)
+            price_asset = Asset(1, symbol)
+            exchange_rate_calculator.set_asset_value(price_asset)
+            dohlc = ('',) * 5
+            print(','.join(map(str, (
+                xid, entry.date, tax_period(entry.date), 
+                'ExchangeRate', market, price_asset.value_data) + dohlc)))
+        
+        for symbol_pair in last_prices.last_accessed_symbols:
+            market = '{}/{}'.format(*symbol_pair)
+            market_data = last_prices._last_market_data.get(symbol_pair)
+            if market_data:
+                price = market_data.value
+                dohlc = (
+                    market_data.date,
+                    market_data.open_price, 
+                    market_data.high_price, 
+                    market_data.low_price,
+                    market_data.close_price)
+            else:
+                price = ''
+                dohlc = ('',) * 5
+
+            print(','.join(map(str, (
+                xid, entry.date, tax_period(entry.date), 
+                'MarketData', market, price) + dohlc)))

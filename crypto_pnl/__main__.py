@@ -40,7 +40,7 @@ import os
 import glob
 
 from .console_walk import walk_trades
-from .csv_export import export_trades, export_tracker_events, export_ledger
+from .csv_export import export_trades, export_tracker_events, export_ledger, export_prices
 
 
 def get_paths(path):
@@ -78,6 +78,10 @@ def print_commands():
             Export into CSV file a preprocessed transactions log, where
             transactions are valuated in EUR using exchange rates driven by market data.
 
+    export-prices
+            Export into CSV file a preprocessed prices log, where
+            prices that were used by events are in EUR using exchange rates driven by market data.
+
     ''')
 
 def print_help():
@@ -97,7 +101,7 @@ def main():
         return
 
     cmd = args[0]
-    if cmd in ('walk', 'export-trades', 'export-ledger',
+    if cmd in ('walk', 'export-trades', 'export-ledger', 'export-prices',
             'export-tracker-events',
             'export-tracker-events-fifo'):
         path = args[1]
@@ -112,6 +116,8 @@ def main():
             export_tracker_events(*paths, use_fifo=True)
         elif cmd == 'export-ledger':
             export_ledger(*paths)
+        elif cmd == 'export-prices':
+            export_prices(*paths)
     elif cmd in ('help','-h'):
         print_help()
     else:
