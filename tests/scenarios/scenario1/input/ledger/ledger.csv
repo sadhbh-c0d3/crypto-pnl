@@ -1,0 +1,2 @@
+User_ID,UTC_Time,Account,Operation,Coin,Change,Remark
+911111111,2022-06-01 10:00:00,Spot,Deposit,EUR,20000.00000000,"Funding"

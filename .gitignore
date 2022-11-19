@@ -1,2 +1,4 @@
 .vscode/*
 *.py[co]
+.DS_Store
+tests/scenarios/*/output/*
