@@ -26,6 +26,11 @@ import re
 from decimal import Decimal
 from datetime import datetime
 
+import pytz
+
+LOCAL_TZ = pytz.timezone("Europe/Dublin")
+UTC_TZ = pytz.utc
+
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 INCH_RE = re.compile('(?P<quantity>[0-9.]+)1INCH')
@@ -97,11 +102,24 @@ def get_asset_rank(symbol):
 
 
 def get_datetime(date):
-    return datetime.strptime(date, DATE_FORMAT)
+    """
+    Load Date/Time from Ledger/Trades where local date/time is used
+    even though the header column says UTC
+    """
+    naive = datetime.strptime(date, DATE_FORMAT)
+    return LOCAL_TZ.localize(naive, is_dst=None)
 
 
 def get_datetime_from_timestamp(timestamp):
-    return datetime.fromtimestamp(timestamp/1000.0)
+    """
+    Load Date/Time from UNIX timestamp, which is always UTC
+    """
+    naive = datetime.fromtimestamp(timestamp/1000.0)
+    return UTC_TZ.localize(naive, is_dst=None)
+
+
+# Double check that get_datetime() will return same date as get_date_from_timestamp()
+assert get_datetime("2022-06-01 10:00:00") == get_datetime_from_timestamp(1654074000000)
 
 
 def parse_side(side):
