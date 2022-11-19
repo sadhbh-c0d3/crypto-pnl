@@ -44,11 +44,15 @@ class ExchangeRateCalculator:
         if symbol == FIAT_SYMBOL:
             return Decimal(1.0)
         fiat_price = self.last_price_provider.get_last_price(FIAT_SYMBOL, FIAT_EXCHANGE_SYMBOL)
+        if not fiat_price:
+            raise ValueError('Missing market data for {}/{}'.format(FIAT_SYMBOL, FIAT_EXCHANGE_SYMBOL))
         if symbol == FIAT_EXCHANGE_SYMBOL:
             return Decimal(1.0) / fiat_price
         symbol_price = self.last_price_provider.get_last_price(symbol, FIAT_EXCHANGE_SYMBOL)
         if symbol_price is not None:
             return symbol_price / fiat_price
+        if not symbol_price:
+            raise ValueError('Missing market data for {}/{}'.format(symbol, FIAT_EXCHANGE_SYMBOL))
 
     def set_asset_value(self, asset):
         """
