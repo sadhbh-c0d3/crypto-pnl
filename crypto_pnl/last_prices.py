@@ -30,30 +30,32 @@ class LastPrices:
         combined_market_data = combine_data_streams(market_data_streams)
         self.market_data_iter = iter(combined_market_data)
         self.market_data_current = None
+        self.which_stream_next = None
         self.market_data_next = None
     
     def play_market_data_until(self, date):
-        while True:
-            if self.market_data_next:
-                if date < self.market_data_next.date:
-                    break
-                else:
-                    key = (
-                        self.market_data_next.symbol_traded,
-                        self.market_data_next.symbol_main)
-                    self._last_market_data[key] = self.market_data_next
-                    self.market_data_current = self.market_data_next
-            try:
-                which_stream, self.market_data_next = next(self.market_data_iter)
-                if date < self.market_data_next.date:
-                    break
-                key = (
-                    self.market_data_next.symbol_traded,
+        def is_next_after_date():
+            return (date < self.market_data_next.date)
+    
+        def get_next_key():
+            return (self.market_data_next.symbol_traded,
                     self.market_data_next.symbol_main)
-                self._last_market_data[key] = self.market_data_next
-                self.market_data_current = self.market_data_next
-            except StopIteration:
+
+        def set_last_market_data():
+            self._last_market_data[get_next_key()] = self.market_data_next
+            self.market_data_current = self.market_data_next
+        
+        if self.market_data_next:
+            if is_next_after_date():
+                return
+            set_last_market_data()
+        
+        for (self.which_stream_next,
+             self.market_data_next) in self.market_data_iter:
+            if is_next_after_date():
                 break
+            set_last_market_data()
+
     
     def get_last_price(self, traded_symbol, main_symbol):
         last_market_data = self._last_market_data.get((traded_symbol, main_symbol))
