@@ -433,7 +433,7 @@ def export_prices(trades_paths, ledger_paths, market_data_paths):
         if FIAT_SYMBOL in entry_symbols:
             entry_symbols.remove(FIAT_SYMBOL)
         
-        for symbol in entry_symbols:
+        for symbol in sorted(entry_symbols):
             market = '{}/{}'.format(symbol, FIAT_SYMBOL)
             price_asset = Asset(1, symbol)
             exchange_rate_calculator.set_asset_value(price_asset)
@@ -442,7 +442,7 @@ def export_prices(trades_paths, ledger_paths, market_data_paths):
                 xid, entry.date, tax_period(entry.date), 
                 'ExchangeRate', market, price_asset.value_data) + dohlc)))
         
-        for symbol_pair in last_prices.last_accessed_symbols:
+        for symbol_pair in sorted(last_prices.last_accessed_symbols):
             market = '{}/{}'.format(*symbol_pair)
             market_data = last_prices._last_market_data.get(symbol_pair)
             if market_data:
