@@ -34,8 +34,15 @@ class LastPrices:
     
     def play_market_data_until(self, date):
         while True:
-            if self.market_data_next and date < self.market_data_next.date:
-                break
+            if self.market_data_next:
+                if date < self.market_data_next.date:
+                    break
+                else:
+                    key = (
+                        self.market_data_next.symbol_traded,
+                        self.market_data_next.symbol_main)
+                    self._last_market_data[key] = self.market_data_next
+                    self.market_data_current = self.market_data_next
             try:
                 which_stream, self.market_data_next = next(self.market_data_iter)
                 if date < self.market_data_next.date:
