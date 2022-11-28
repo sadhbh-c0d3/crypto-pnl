@@ -46,12 +46,24 @@ class LedgerEntry:
         self.remark = remark
 
 
-def shoud_ignore_ledger_entry(entry):
+def shoud_ignore_ledger_transfer_entry(entry):
+    return entry.operation in (
+        'transfer_in',
+        'transfer_out',
+        'Main and funding account transfer')
+
+
+def shoud_ignore_ledger_duplicated_trade_entry(entry):
     return entry.account == 'Spot' and entry.operation in (
         'Transaction Related',
         'Buy',
         'Sell',
         'Fee')
+
+
+def shoud_ignore_ledger_entry(entry):
+    return (shoud_ignore_ledger_transfer_entry(entry) or
+            shoud_ignore_ledger_duplicated_trade_entry(entry))
 
 
 def should_change_loan_balance(entry):

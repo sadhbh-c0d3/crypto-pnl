@@ -25,7 +25,13 @@ import sys
 from .core import *
 from .asset import Asset, zero_asset, copy_asset, get_price
 from .trade import load_trades, use_trade_streams
-from .ledger import load_ledger, use_ledger_streams, shoud_ignore_ledger_entry, should_change_loan_balance
+from .ledger import (
+    load_ledger,
+    use_ledger_streams,
+    shoud_ignore_ledger_transfer_entry,
+    shoud_ignore_ledger_duplicated_trade_entry,
+    shoud_ignore_ledger_entry, 
+    should_change_loan_balance)
 from .market_data import load_market_data
 from .wallet import Wallet
 from .journal import Journal
@@ -41,6 +47,7 @@ from itertools import chain
 TRACKER_EVENT_HEADERS = (
     'ID',
     'Date',
+    'Tax Year',
     'Tax Period',
     'Type',
     'Event',
@@ -64,6 +71,7 @@ TRACKER_EVENT_HEADERS = (
 TRADE_HEADERS = (
     'ID',
     'Date',
+    'Tax Year',
     'Tax Period',
     'Traded Pair',
     'Side',
@@ -83,6 +91,7 @@ TRADE_HEADERS = (
 LEDGER_HEADERS = (
     'ID',
     'Date',
+    'Tax Year',
     'Tax Period',
     'Account',
     'Operation',
@@ -96,6 +105,7 @@ LEDGER_HEADERS = (
 PRICES_HEADERS = (
     'ID',
     'Date',
+    'Tax Year',
     'Tax Period',
     'Type',
     'Market',
@@ -204,6 +214,7 @@ def render_tracker_event(e, event_positions, event_lots):
 def render_trade(trade):
     return (
         trade.date,
+        trade.date.year,
         tax_period(trade.date),
         trade.pair,
         get_side(trade.side),
@@ -223,7 +234,10 @@ def render_trade(trade):
 
 def render_ledger_entry(entry):
     ignore = False
-    if shoud_ignore_ledger_entry(entry):
+    if shoud_ignore_ledger_transfer_entry(entry):
+        ignore = True
+        entry_remark = 'Entry should be ignored as it is same user transfer.' + entry.remark
+    elif shoud_ignore_ledger_duplicated_trade_entry(entry):
         ignore = True
         entry_remark = 'Entry should be ignored as it duplicates an entry from trading log.' + entry.remark
     elif should_change_loan_balance(entry):
@@ -244,6 +258,7 @@ def render_ledger_entry(entry):
 
     return (
         entry.date,
+        entry.date.year,
         tax_period(entry.date),
         entry.account,
         entry.operation,
@@ -310,7 +325,7 @@ def export_tracker_events(trades_paths, ledger_paths, market_data_paths, use_fif
                 journal.last_transaction.trackers.trackers):
             for te in tracker.events:
                 print(','.join(
-                    map(str, (xid, entry.date, tax_period(entry.date)
+                    map(str, (xid, entry.date, entry.date.year, tax_period(entry.date)
                     ) + render_tracker_event(te, event_positions, event_lots)
                 )))
 
@@ -419,7 +434,7 @@ def export_prices(trades_paths, ledger_paths, market_data_paths):
             dohlc = ('',) * 5
             market = '{}/{}'.format(entry.executed.symbol, entry.amount.symbol)
             print(','.join(map(str, (
-                xid, entry.date, tax_period(entry.date), 
+                xid, entry.date, entry.date.year, tax_period(entry.date), 
                 'Trade', market, entry.price) + dohlc)))
 
         else:
@@ -439,7 +454,7 @@ def export_prices(trades_paths, ledger_paths, market_data_paths):
             exchange_rate_calculator.set_asset_value(price_asset)
             dohlc = ('',) * 5
             print(','.join(map(str, (
-                xid, entry.date, tax_period(entry.date), 
+                xid, entry.date, entry.date.year, tax_period(entry.date), 
                 'ExchangeRate', market, price_asset.value_data) + dohlc)))
         
         for symbol_pair in sorted(last_prices.last_accessed_symbols):
@@ -458,5 +473,5 @@ def export_prices(trades_paths, ledger_paths, market_data_paths):
                 dohlc = ('',) * 5
 
             print(','.join(map(str, (
-                xid, entry.date, tax_period(entry.date), 
+                xid, entry.date, entry.date.year, tax_period(entry.date), 
                 'MarketData', market, price) + dohlc)))
