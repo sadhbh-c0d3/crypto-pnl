@@ -46,6 +46,10 @@ class LedgerEntry:
         self.remark = remark
 
 
+def is_card_spending_ledger_entry(entry):
+    return entry.operation == 'Binance Card Spending'
+
+
 def shoud_ignore_ledger_transfer_entry(entry):
     return entry.operation in (
         'transfer_in',

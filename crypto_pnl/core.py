@@ -103,11 +103,10 @@ def get_asset_rank(symbol):
 
 def get_datetime(date):
     """
-    Load Date/Time from Ledger/Trades where local date/time is used
-    even though the header column says UTC
+    Load Date/Time from Date(UTC) column of Ledger/Trades 
     """
     naive = datetime.strptime(date, DATE_FORMAT)
-    return LOCAL_TZ.localize(naive, is_dst=None)
+    return UTC_TZ.localize(naive, is_dst=None).astimezone(LOCAL_TZ)
 
 
 def get_datetime_from_timestamp(timestamp):
@@ -115,11 +114,11 @@ def get_datetime_from_timestamp(timestamp):
     Load Date/Time from UNIX timestamp, which is always UTC
     """
     naive = datetime.fromtimestamp(timestamp/1000.0)
-    return UTC_TZ.localize(naive, is_dst=None)
+    return UTC_TZ.localize(naive, is_dst=None).astimezone(LOCAL_TZ)
 
 
 # Double check that get_datetime() will return same date as get_date_from_timestamp()
-assert get_datetime("2022-06-01 10:00:00") == get_datetime_from_timestamp(1654074000000)
+assert get_datetime("2022-06-01 09:00:00") == get_datetime_from_timestamp(1654074000000)
 
 
 def parse_side(side):

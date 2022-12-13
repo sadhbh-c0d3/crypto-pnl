@@ -21,6 +21,8 @@
 # SOFTWARE.
 
 from .core import *
+from .asset import parse_asset
+from .ledger import is_card_spending_ledger_entry
 
 
 class ExchangeRateCalculator:
@@ -96,7 +98,10 @@ class ExchangeRateCalculator:
         self._set_last_trade(trade)
 
     def will_process_ledger_entry(self, entry):
-        self.set_asset_value_check_stale(entry.change, entry.date)
+        if is_card_spending_ledger_entry(entry):
+            self._set_card_spending_value(entry)
+        else:
+            self.set_asset_value_check_stale(entry.change, entry.date)
         if not entry.change.has_value:
             raise ValueError('Please, download market data for {} on {} from {}'.format(
                 entry.change.symbol,
@@ -105,6 +110,18 @@ class ExchangeRateCalculator:
 
 
     # private:
+
+    def _set_card_spending_value(self, entry):
+        self.last_price_provider.play_market_data_until(entry.date)
+        try:
+            spent_amount = parse_asset(entry.remark)
+            if entry.change.quantity < 0:
+                spent_amount.quantity *= -1
+        except:
+            raise ValueError('Please, add remark with actual value of the card transaction {}'.format(
+                entry.date))
+        entry.change.set_value(spent_amount.quantity, CURRENT_VALUE)
+        entry.change.set_unit_value(spent_amount.quantity / entry.change.quantity)
     
     def _set_last_trade(self, trade):
         if trade.exchange_symbol == trade.amount.symbol:

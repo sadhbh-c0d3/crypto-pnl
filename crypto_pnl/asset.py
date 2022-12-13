@@ -111,8 +111,10 @@ def parse_asset(quantity):
     g = INCH_RE.match(quantity)
     if g: # 1INCH is special, because it starts with digit
         return Asset(g.groups()[0], INCH_SYMBOL)
-    g = MONETARY_RE.match(quantity).groups()
-    if len(g) == 2 and g[1]:
-        return Asset(*g)
+    g = MONETARY_RE.match(quantity)
+    if g:
+        g = g.groups()
+        if len(g) == 2 and g[1]:
+            return Asset(*g)
     raise ValueError(quantity)
 

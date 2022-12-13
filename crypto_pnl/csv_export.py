@@ -28,6 +28,7 @@ from .trade import load_trades, use_trade_streams
 from .ledger import (
     load_ledger,
     use_ledger_streams,
+    is_card_spending_ledger_entry,
     shoud_ignore_ledger_transfer_entry,
     shoud_ignore_ledger_duplicated_trade_entry,
     shoud_ignore_ledger_entry, 
@@ -242,6 +243,8 @@ def render_ledger_entry(entry):
         entry_remark = 'Entry should be ignored as it duplicates an entry from trading log.' + entry.remark
     elif should_change_loan_balance(entry):
         entry_remark = 'Entry is used to calculate loan interests.' + entry.remark
+    elif is_card_spending_ledger_entry(entry):
+        entry_remark = 'Using actual card spending amount: ' + entry.remark
     else:
         entry_remark = entry.remark
 
@@ -451,7 +454,7 @@ def export_prices(trades_paths, ledger_paths, market_data_paths):
         for symbol in sorted(entry_symbols):
             market = '{}/{}'.format(symbol, FIAT_SYMBOL)
             price_asset = Asset(1, symbol)
-            exchange_rate_calculator.set_asset_value(price_asset)
+            exchange_rate_calculator.set_asset_value_check_stale(price_asset, entry.date)
             dohlc = ('',) * 5
             print(','.join(map(str, (
                 xid, entry.date, entry.date.year, tax_period(entry.date), 
