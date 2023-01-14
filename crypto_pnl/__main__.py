@@ -40,7 +40,11 @@ import os
 import glob
 
 from .console_walk import walk_trades
-from .csv_export import export_trades, export_tracker_events, export_ledger, export_prices
+from .csv_export import (
+    export_trades,
+    export_tracker_events,
+    export_ledger,
+    export_prices)
 
 
 def get_paths(path):
@@ -58,30 +62,34 @@ usage: crypto_pnl <walk|export-trades|export-tracker-events|export-ledger> <path
 
 def print_commands():
     print('''commands:
-    walk    Walk through transaction log printing for each transaction
+    walk <input_dir>
+            Walk through transaction log printing for each transaction
             the details of transaction, exchange rates, account balance,
             transaction gains, and transaction match and carry actions.
     
-    export-trades
+    export-trades <input_dir>
             Export into CSV file a preprocessed trading log, where
             trades are valuated in EUR using exchange rates driven by market data.
 
-    export-tracker-events
+    export-tracker-events <input_dir>
             Export into CSV file a preprocessed trading log, where
             buys are matched against sells by matching engine
             and EUR gains are calculated using exchange rates driven by market data.
 
-    export-tracker-events-fifo
+    export-tracker-events-fifo <input_dir>
             Same as export-tracker-events, but use FIFO matching instead of default LIFO.
 
-    export-ledger
+    export-ledger <input_dir>
             Export into CSV file a preprocessed transactions log, where
             transactions are valuated in EUR using exchange rates driven by market data.
 
-    export-prices
+    export-prices <input_dir> <output_makret_data_dir>
             Export into CSV file a preprocessed prices log, where
             prices that were used by events are in EUR using exchange rates driven by market data.
-
+            
+            Export into CSV file market data filetered by trade and transaction log events.
+            The exported sparse market data can be used instead of original big files when
+            generating all remaining files. Results should not differ.
     ''')
 
 def print_help():
@@ -117,7 +125,7 @@ def main():
         elif cmd == 'export-ledger':
             export_ledger(*paths)
         elif cmd == 'export-prices':
-            export_prices(*paths)
+            export_prices(*paths, args[2])
     elif cmd in ('help','-h'):
         print_help()
     else:

@@ -28,8 +28,8 @@ from datetime import datetime
 
 import pytz
 
-LOCAL_TZ = pytz.timezone("Europe/Dublin")
-UTC_TZ = pytz.utc
+TRADING_LOGS_TZ = pytz.utc
+REPORTING_TZ = pytz.utc
 
 DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
@@ -106,19 +106,23 @@ def get_datetime(date):
     Load Date/Time from Date(UTC) column of Ledger/Trades 
     """
     naive = datetime.strptime(date, DATE_FORMAT)
-    return UTC_TZ.localize(naive, is_dst=None).astimezone(LOCAL_TZ)
+    trading_dt = TRADING_LOGS_TZ.localize(naive, is_dst=None)
+    return trading_dt.astimezone(REPORTING_TZ)
 
 
 def get_datetime_from_timestamp(timestamp):
     """
     Load Date/Time from UNIX timestamp, which is always UTC
     """
-    naive = datetime.fromtimestamp(timestamp/1000.0)
-    return UTC_TZ.localize(naive, is_dst=None).astimezone(LOCAL_TZ)
+    utc_dt = datetime.fromtimestamp(timestamp/1000.0, tz=pytz.utc)
+    return utc_dt.astimezone(REPORTING_TZ)
 
 
-# Double check that get_datetime() will return same date as get_date_from_timestamp()
-assert get_datetime("2022-06-01 09:00:00") == get_datetime_from_timestamp(1654074000000)
+def format_datetime(date):
+    """
+    Format for reporting
+    """
+    return datetime.strftime(date, DATE_FORMAT)
 
 
 def parse_side(side):

@@ -86,8 +86,18 @@ class ExchangeRateCalculator:
         last_trade_date = self.last_trade_date.get(asset.symbol)
         last_update_date = self.last_price_provider.get_last_update_date(asset.symbol, FIAT_EXCHANGE_SYMBOL)
         if last_trade_date and (not last_update_date or not (last_trade_date < last_update_date)):
+            """
+            There exists last trade and:
+                a) there was no market data, or
+                b) last trade is more recent than last market data
+                ==> then use exchange rate calcualted from last trade
+            """
             unit_value = self.last_prices.get(asset.symbol)
         else:
+            """
+            Otherwise:
+                ==> use market data
+            """
             unit_value = self.get_exchange_rate(asset.symbol)
         if unit_value:
             asset.set_value(convert(asset.quantity, unit_value), CURRENT_VALUE)

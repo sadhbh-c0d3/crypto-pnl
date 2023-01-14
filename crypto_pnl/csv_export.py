@@ -20,7 +20,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import sys
+import os
 
 from .core import *
 from .asset import Asset, zero_asset, copy_asset, get_price
@@ -112,6 +112,7 @@ PRICES_HEADERS = (
     'Market',
     'Price',
     'Tick',
+    'Tick Date',
     'Open',
     'High',
     'Low',
@@ -214,7 +215,7 @@ def render_tracker_event(e, event_positions, event_lots):
 
 def render_trade(trade):
     return (
-        trade.date,
+        format_datetime(trade.date),
         trade.date.year,
         tax_period(trade.date),
         trade.pair,
@@ -260,7 +261,7 @@ def render_ledger_entry(entry):
         entry_change_price = format_quantity(entry.change.unit_value)
 
     return (
-        entry.date,
+        format_datetime(entry.date),
         entry.date.year,
         tax_period(entry.date),
         entry.account,
@@ -328,7 +329,7 @@ def export_tracker_events(trades_paths, ledger_paths, market_data_paths, use_fif
                 journal.last_transaction.trackers.trackers):
             for te in tracker.events:
                 print(','.join(
-                    map(str, (xid, entry.date, entry.date.year, tax_period(entry.date)
+                    map(str, (xid, format_datetime(entry.date), entry.date.year, tax_period(entry.date)
                     ) + render_tracker_event(te, event_positions, event_lots)
                 )))
 
@@ -402,7 +403,7 @@ class LastPricesLogger(LastPrices):
         return super().get_last_update_date(traded_symbol, main_symbol)
 
 
-def export_prices(trades_paths, ledger_paths, market_data_paths):
+def export_prices(trades_paths, ledger_paths, market_data_paths, output_dir):
     last_prices = LastPricesLogger()
     exchange_rate_calculator = ExchangeRateCalculator(last_prices)
     wallet = Wallet()
@@ -421,60 +422,82 @@ def export_prices(trades_paths, ledger_paths, market_data_paths):
 
     print(','.join(PRICES_HEADERS))
 
-    number = 0
-    ledger_number = 0
-    for which, entry in combine_data_streams([trades, ledgers]):
-        last_prices.reset_last_accesssed()
-        entry_symbols = set()
+    output_files = {}
+    last_ticks = {}
+    try:
+        number = 0
+        ledger_number = 0
+        for which, entry in combine_data_streams([trades, ledgers]):
+            last_prices.reset_last_accesssed()
+            entry_symbols = set()
 
-        if not which:
-            number += 1
-            xid = 'T/{}'.format(number)
-            exchange_rate_calculator.will_execute(entry)
-            entry_symbols.add(entry.executed.symbol)
-            entry_symbols.add(entry.amount.symbol)
-            entry_symbols.add(entry.fee.symbol)
-            dohlc = ('',) * 5
-            market = '{}/{}'.format(entry.executed.symbol, entry.amount.symbol)
-            print(','.join(map(str, (
-                xid, entry.date, entry.date.year, tax_period(entry.date), 
-                'Trade', market, entry.price) + dohlc)))
-
-        else:
-            ledger_number += 1
-            xid = 'L/{}'.format(ledger_number)
-            if shoud_ignore_ledger_entry(entry):
-                continue
-            exchange_rate_calculator.will_process_ledger_entry(entry)
-            entry_symbols.add(entry.change.symbol)
-        
-        if FIAT_SYMBOL in entry_symbols:
-            entry_symbols.remove(FIAT_SYMBOL)
-        
-        for symbol in sorted(entry_symbols):
-            market = '{}/{}'.format(symbol, FIAT_SYMBOL)
-            price_asset = Asset(1, symbol)
-            exchange_rate_calculator.set_asset_value_check_stale(price_asset, entry.date)
-            dohlc = ('',) * 5
-            print(','.join(map(str, (
-                xid, entry.date, entry.date.year, tax_period(entry.date), 
-                'ExchangeRate', market, price_asset.value_data) + dohlc)))
-        
-        for symbol_pair in sorted(last_prices.last_accessed_symbols):
-            market = '{}/{}'.format(*symbol_pair)
-            market_data = last_prices._last_market_data.get(symbol_pair)
-            if market_data:
-                price = market_data.value
-                dohlc = (
-                    market_data.date,
-                    market_data.open_price, 
-                    market_data.high_price, 
-                    market_data.low_price,
-                    market_data.close_price)
-            else:
-                price = ''
+            if not which:
+                number += 1
+                xid = 'T/{}'.format(number)
+                exchange_rate_calculator.will_execute(entry)
+                entry_symbols.add(entry.executed.symbol)
+                entry_symbols.add(entry.amount.symbol)
+                entry_symbols.add(entry.fee.symbol)
                 dohlc = ('',) * 5
+                market = '{}/{}'.format(entry.executed.symbol, entry.amount.symbol)
+                print(','.join(map(str, (
+                    xid, format_datetime(entry.date), entry.date.year, tax_period(entry.date), 
+                    'Trade', market, entry.price) + dohlc)))
 
-            print(','.join(map(str, (
-                xid, entry.date, entry.date.year, tax_period(entry.date), 
-                'MarketData', market, price) + dohlc)))
+            else:
+                ledger_number += 1
+                xid = 'L/{}'.format(ledger_number)
+                if shoud_ignore_ledger_entry(entry):
+                    continue
+                exchange_rate_calculator.will_process_ledger_entry(entry)
+                entry_symbols.add(entry.change.symbol)
+            
+            if FIAT_SYMBOL in entry_symbols:
+                entry_symbols.remove(FIAT_SYMBOL)
+            
+            for symbol in sorted(entry_symbols):
+                market = '{}/{}'.format(symbol, FIAT_SYMBOL)
+                price_asset = Asset(1, symbol)
+                exchange_rate_calculator.set_asset_value_check_stale(price_asset, entry.date)
+                dohlc = ('',) * 5
+                print(','.join(map(str, (
+                    xid, format_datetime(entry.date), entry.date.year, tax_period(entry.date), 
+                    'ExchangeRate', market, price_asset.value_data) + dohlc)))
+            
+            for symbol_pair in sorted(last_prices.last_accessed_symbols):
+                market = '{}/{}'.format(*symbol_pair)
+                market_data = last_prices._last_market_data.get(symbol_pair)
+                if market_data:
+                    price = market_data.value
+                    dohlc = (
+                        market_data.unix,
+                        format_datetime(market_data.date),
+                        market_data.open_price, 
+                        market_data.high_price, 
+                        market_data.low_price,
+                        market_data.close_price)
+                    filename = '{}{}.csv'.format(*symbol_pair)
+                    fp = output_files.get(filename, None)
+                    if fp is None:
+                        filepath = os.path.join(output_dir, filename)
+                        fp = open(filepath, 'w+')
+                        output_files[filename] = fp
+                    last_tick = last_ticks.get(filename, None)
+                    if last_tick != market_data.unix:
+                        last_ticks[filename] = market_data.unix
+                        print(','.join(map(str, (
+                            market_data.unix,
+                            market_data.open_price, 
+                            market_data.high_price, 
+                            market_data.low_price,
+                            market_data.close_price))), file=fp)
+                else:
+                    price = ''
+                    dohlc = ('',) * 5
+
+                print(','.join(map(str, (
+                    xid, format_datetime(entry.date), entry.date.year, tax_period(entry.date), 
+                    'MarketData', market, price) + dohlc)))
+    finally:
+        for fp in output_files.values():
+            fp.close()
