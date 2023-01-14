@@ -38,4 +38,4 @@ python3 -m crypto_pnl export-prices $INPUT_DIR $OUTPUT_MARKET_DATA_DIR > $OUTPUT
 # Step 3. Generate reports using sparse market data from Step 2.
 python3 -m crypto_pnl export-trades $OUTPUT_LOGS_DIR > $OUTPUT_DIR/trades.csv
 python3 -m crypto_pnl export-ledger $OUTPUT_LOGS_DIR > $OUTPUT_DIR/ledger.csv
-python3 -m crypto_pnl export-tracker-events-fifo $OUTPUT_LOGS_DIR > $OUTPUT_DIR/tracker-fifo.csv
+python3 -m crypto_pnl export-tracker-events-fifo $OUTPUT_LOGS_DIR > $OUTPUT_DIR/pnl-matching.csv

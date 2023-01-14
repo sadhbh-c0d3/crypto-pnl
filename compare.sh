@@ -25,7 +25,7 @@ echo Comparing ledgers
 diff $INPUT_DIR2/ledger.csv $INPUT_DIR1/ledger.csv | head -n5
 
 echo Comparing trackers
-diff $INPUT_DIR2/tracker-info.csv $INPUT_DIR1/tracker-info.csv
+diff $INPUT_DIR2/pnl-matching.csv $INPUT_DIR1/pnl-matching.csv
 
 echo Comparing prices
 diff $INPUT_DIR2/prices.csv $INPUT_DIR1/prices.csv | head -n5

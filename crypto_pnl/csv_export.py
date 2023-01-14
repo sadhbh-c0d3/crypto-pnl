@@ -238,14 +238,14 @@ def render_ledger_entry(entry):
     ignore = False
     if shoud_ignore_ledger_transfer_entry(entry):
         ignore = True
-        entry_remark = 'Entry should be ignored as it is same user transfer.' + entry.remark
+        entry_remark = 'Entry should be ignored as it is same user transfer'
     elif shoud_ignore_ledger_duplicated_trade_entry(entry):
         ignore = True
-        entry_remark = 'Entry should be ignored as it duplicates an entry from trading log.' + entry.remark
+        entry_remark = 'Entry should be ignored as it duplicates an entry from trading log'
     elif should_change_loan_balance(entry):
-        entry_remark = 'Entry is used to calculate loan interests.' + entry.remark
+        entry_remark = 'Entry is used to calculate loan interests'
     elif is_card_spending_ledger_entry(entry):
-        entry_remark = 'Using actual card spending amount: ' + entry.remark
+        entry_remark = 'Using actual card spending amount'
     else:
         entry_remark = entry.remark
 
@@ -257,7 +257,6 @@ def render_ledger_entry(entry):
         entry_change_price = '<MISSING>'
     else:
         entry_change_value = format_quantity(entry.change.value_data)
-        #entry_change_price = format_quantity(entry.change.value_data / entry.change.quantity)
         entry_change_price = format_quantity(entry.change.unit_value)
 
     return (

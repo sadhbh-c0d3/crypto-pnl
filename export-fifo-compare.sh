@@ -38,7 +38,7 @@ python3 -m crypto_pnl export-prices $INPUT_DIR $OUTPUT_MARKET_DATA_DIR > $OUTPUT
 # Step 3. Generate reports using sparse market data from Step 2.
 python3 -m crypto_pnl export-trades $OUTPUT_LOGS_DIR > $OUTPUT_DIR/trades.csv
 python3 -m crypto_pnl export-ledger $OUTPUT_LOGS_DIR > $OUTPUT_DIR/ledger.csv
-python3 -m crypto_pnl export-tracker-events-fifo $OUTPUT_LOGS_DIR > $OUTPUT_DIR/tracker-fifo.csv
+python3 -m crypto_pnl export-tracker-events-fifo $OUTPUT_LOGS_DIR > $OUTPUT_DIR/pnl-matching.csv
 
 
 # Step 3. Validate results (optional)
@@ -52,7 +52,7 @@ mkdir -p $OUTPUT_MARKET_DATA_TEMP_DIR
 # Step 3a. Generate reports from original data
 python3 -m crypto_pnl export-trades $INPUT_DIR > $OUTPUT_TEMP_DIR/trades.csv
 python3 -m crypto_pnl export-ledger $INPUT_DIR > $OUTPUT_TEMP_DIR/ledger.csv
-python3 -m crypto_pnl export-tracker-events-fifo $INPUT_DIR > $OUTPUT_TEMP_DIR/tracker-fifo.csv
+python3 -m crypto_pnl export-tracker-events-fifo $INPUT_DIR > $OUTPUT_TEMP_DIR/pnl-matching.csv
 
 # Step 3b. Generate market data from sparse market data (should not be any different)
 python3 -m crypto_pnl export-prices $OUTPUT_LOGS_DIR $OUTPUT_MARKET_DATA_TEMP_DIR > $OUTPUT_TEMP_DIR/prices.csv
@@ -66,7 +66,7 @@ echo Comparing ledgers
 diff $OUTPUT_TEMP_DIR/ledger.csv $OUTPUT_DIR/ledger.csv | head -n5
 
 echo Comparing trackers
-diff $OUTPUT_TEMP_DIR/tracker-info.csv $OUTPUT_DIR/tracker-info.csv
+diff $OUTPUT_TEMP_DIR/pnl-matching.csv $OUTPUT_DIR/pnl-matching.csv
 
 echo Comparing prices
 diff $OUTPUT_TEMP_DIR/prices.csv $OUTPUT_DIR/prices.csv | head -n5
