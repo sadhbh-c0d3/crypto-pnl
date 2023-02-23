@@ -10,7 +10,7 @@ def test_market_data_parse():
     assert market_data.symbol_traded == "ETH"
     assert market_data.symbol_main == "BTC"
     assert market_data.unix == "1654074300000"
-    assert format_datetime(market_data.date) == "2022-06-01 10:05:00"
+    assert format_datetime(market_data.date) == "2022-06-01 09:05:00"
     assert market_data.open_price == Decimal("1.25")
     assert market_data.high_price == Decimal("1.28")
     assert market_data.low_price == Decimal("1.2")

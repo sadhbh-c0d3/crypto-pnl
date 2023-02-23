@@ -1,2 +1,2 @@
-ID,Date,Tax Period,Account,Operation,Coin,Change,Price in EUR,Value in EUR,Remark
-L/1,2022-06-01 10:00:00+01:00,First,Spot,Deposit,EUR,20000.0000000000,1.0000000000,20000.0000000000,Funding
+ID,Date,Tax Year,Tax Period,Account,Operation,Coin,Change,Price in EUR,Value in EUR,Remark
+L/1,2022-06-01 10:00:00,2022,First,Spot,Deposit,EUR,20000.0000000000,1.0000000000,20000.0000000000,Funding
