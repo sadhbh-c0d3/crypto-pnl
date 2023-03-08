@@ -10,8 +10,10 @@ then
     exit 1
 fi
 
+mkdir -p $EXPECTED_OUTPUT_DIR/market_data
+
 python3 -m crypto_pnl export-tracker-events-fifo $INPUT_DIR > $EXPECTED_OUTPUT_DIR/tracker-fifo.csv
 python3 -m crypto_pnl export-trades $INPUT_DIR > $EXPECTED_OUTPUT_DIR/trades.csv
 python3 -m crypto_pnl export-ledger $INPUT_DIR > $EXPECTED_OUTPUT_DIR/ledger.csv
-python3 -m crypto_pnl export-prices $INPUT_DIR > $EXPECTED_OUTPUT_DIR/prices.csv
+python3 -m crypto_pnl export-prices $INPUT_DIR $EXPECTED_OUTPUT_DIR/market_data > $EXPECTED_OUTPUT_DIR/prices.csv
 
