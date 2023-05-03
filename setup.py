@@ -51,7 +51,7 @@ Topic :: Office/Business :: Financial :: Spreadsheet"""
 def main():
     setup(
         name="crypto_pnl",
-        version="0.4.0",
+        version="0.5.2",
         url="https://github.com/sadhbh-c0d3/crypto-pnl",
         author="Sonia Kolasinska",
         author_email="sonia.kolasinska.pro@gmail.com",
@@ -62,6 +62,7 @@ def main():
         long_description  = long_description,
         classifiers = classifiers.split("\n"),
         packages=["crypto_pnl"],
+        install_requires=['pytz'],
         entry_points={
             'console_scripts': [
                 'crypto_pnl=crypto_pnl.__main__:main',
