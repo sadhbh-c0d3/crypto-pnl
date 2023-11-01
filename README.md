@@ -78,6 +78,8 @@ They can essetially be realized by LIFO, with the twist that for assets held lon
 
 This tool supports both LIFO and FIFO.
 
+See also [Understanding Reasonable Effort](https://www.bdplaw.com/insights/interpreting-best-efforts-vs-reasonable-efforts-in-contracts/#:~:text=%22Best%20efforts%22%20imposes%20a%20higher,than%20a%20%22reasonable%20effort%22.&text=%22Best%20efforts%22%20includes%20doing%20everything,is%2C%20however%2C%20not%20boundless.)
+
 ### Description
 A matching engine uses multi-leg transaction trackers to match disposals against acquisitions.
 
