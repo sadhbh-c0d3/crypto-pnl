@@ -131,8 +131,6 @@ BUGS:
 FUTURE WORK:
  - Conversion from other CSV file formats
  - Direct API data sourcing
- - Perhaps parse blockchain to get all data required
-
 
 ## Data Download
 This is where you put your Binanace logs. It's easy, please follow these instructions.
