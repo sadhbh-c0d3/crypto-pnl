@@ -25,8 +25,8 @@ The Crypto-PnL tool is a command line tool, which requires Python installed, and
     - `Match ID` if lot operation resulted in match of existing lot *(this will tell you which previous transaction was matched against)*
     - `Buy`, `Sell Quantity`
     - `Buy Value` in EUR at transaction time
-    - **`Sell Value`** in EUR at transaction time *(is a component of what we would put into "Aggregate Consideration")*
-    - **`Gains Value`** is the amount of realized gains associated with the transaction *(we would put that into "Chargeable Gains")*
+    - **`Sell Value`** in EUR at transaction time *(we would put a sum of this column into "Aggregate Consideration")*
+    - **`Gains Value`** is the amount of realized gains associated with the transaction *(we would put a sum of this column into "Chargeable Gains")*
     - **`Changed Quantity`** is the signed amount of change *(if we sum all them, e.g. in Pivot Table, we will get eventual balance)*
     - `Balance` is the balance of the asset at the time directly after transaction
     - `Num Lots` is a number of all open lots at the time directly after transaction
