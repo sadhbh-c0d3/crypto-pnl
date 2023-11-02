@@ -42,6 +42,8 @@ The above screenshots illustrate how resulting "PnL Matching" report may look li
 Please note, these are hand-crafted examples and actual data will depend on your input.
 Please read the section below explaining how to obtain input data.
 
+**Note that you can filter by `Symbol` to obtain per asset report.**
+
 ### Installation
 ```
 pip install crypto-pnl
