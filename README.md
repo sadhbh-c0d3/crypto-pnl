@@ -35,9 +35,9 @@ The Crypto-PnL tool is a command line tool, which requires Python installed, and
     - `Lot {number} Quantity` is quantity remaining in the lot at the time directly after transaction *(you can observe
       how lots are opened and closed after each transaction. This is great  traceability tool)*
 
-<img width="848" alt="demo-gains-1" src="https://github.com/sadhbh-c0d3/crypto-pnl/assets/80485211/aa11435c-f5d3-4af0-a6a6-824e9cb32e8f">
+<img width="848" alt="demo-gains-1" src="https://github.com/sadhbh-c0d3/crypto-pnl/assets/80485211/51c5fc5b-ad75-4026-8851-29f7c25b79c4">
 
-<img width="848" alt="demo-gains-2" src="https://github.com/sadhbh-c0d3/crypto-pnl/assets/80485211/b93137a7-24bf-46d4-8ad9-a603fb3826e1">
+<img width="848" alt="demo-gains-2" src="https://github.com/sadhbh-c0d3/crypto-pnl/assets/80485211/99e88cd2-aeed-436a-93cd-b89e640793e9">
 
 The above screenshots illustrate how resulting "PnL Matching" report may look like.
 Please note, these are hand-crafted examples and actual data will depend on your input.
