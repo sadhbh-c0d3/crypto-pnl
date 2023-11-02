@@ -20,19 +20,19 @@ The Crypto-PnL tool is a command line tool, which requires Python installed, and
     - Match against existing lots and calculate gains, or
     - Flip position and match existing lots calculating gains, and allocate new lot for remaining quantity
 4. Each lot opeartion is analysed, and "Pnl Matching" report data is produced, which contains
-    - Unique ID assigned to transaction (`L/xxx` for entries from Transactions History, or `T/xxx` for entries from Trade History)
-    - Date, Time, Year, Period, Type, Event, Symbol, Action, Side
-    - Match ID if lot operation resulted in match of existing lot (this will tell you which previous transaction was matched against)
-    - Buy, Sell Quantity
-    - Buy Value in EUR at transaction time
-    - **Sell Value** in EUR at transaction time, is component of what we would put into "Aggregate Consideration"
-    - **Gains Value** is the amount of realized gains associated with the transaction, and we put that into "Chargeable Gains"
-    - **Changed Quantity** is the signed amount of change, where if we sum all them (e.g. in Pivot Tabl), we will get eventual balance
-    - Balance is the balance of the asset at the time directly after transaction
-    - Num Lots is a number of all open lots at the time directly after transaction
-    - Lot XX ID is and ID of the transaction, which opened the lot
-    - Lot XX Quantity is quantity remaining in the lot at the time directly after transaction (you can observe
-      how lots are opened and closed after each transaction. This is great  traceability tool)
+    - `Unique ID` assigned to transaction *(`L/xxx` for entries from Transactions History, or `T/xxx` for entries from Trade History)*
+    - `Date`, `Time`, `Year`, `Period`, `Type`, `Event`, `Symbol`, `Action`, `Side`
+    - `Match ID` if lot operation resulted in match of existing lot *(this will tell you which previous transaction was matched against)*
+    - `Buy`, `Sell Quantity`
+    - `Buy Value` in EUR at transaction time
+    - **`Sell Value`** in EUR at transaction time *(is a component of what we would put into "Aggregate Consideration")*
+    - **`Gains Value`** is the amount of realized gains associated with the transaction *(we would put that into "Chargeable Gains")*
+    - **`Changed Quantity`** is the signed amount of change *(if we sum all them, e.g. in Pivot Table, we will get eventual balance)*
+    - `Balance` is the balance of the asset at the time directly after transaction
+    - `Num Lots` is a number of all open lots at the time directly after transaction
+    - `Lot {number} ID` is and ID of the transaction, which opened the lot
+    - `Lot {number} Quantity` is quantity remaining in the lot at the time directly after transaction *(you can observe
+      how lots are opened and closed after each transaction. This is great  traceability tool)*
 
 <img width="848" alt="demo-gains-1" src="https://github.com/sadhbh-c0d3/crypto-pnl/assets/80485211/aa11435c-f5d3-4af0-a6a6-824e9cb32e8f">
 
