@@ -10,10 +10,11 @@ The above illustration shows Pivot Table created in LibreOffice from data genera
 
 The Crypto-PnL tool is a command line tool, which requires Python installed, and it does following:
 
-1. Loads following files from input direcctory:
+1. Loads following files from input directory:
     - Binance Trade History: Spot, Cross Margin, Isolated Margin
     - Binance Transactions History
     - Binance Historical Market Data
+    - **Note these must be provided from the beginning of all time!**
 2. Each entry in Trade and Transactions History is annotated with EUR value at transaction time
 3. Each annotated entry in Trade and Transactions History is used to either:
     - Allocate new lot, or
